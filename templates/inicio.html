@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workify - Bolsa de Trabajo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='Inicio.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="{{ url_for('static', filename='images/logow.png') }}" alt="Workify Logo" class="logo">
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('user_login') }}" class="nav-link">Iniciar Sesión</a>
+                <a href="{{ url_for('show_signup') }}" class="nav-link">Registrarme</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <main class="main-content">
+        <div class="hero-section">
+            <h1>Bienvenido a Workify</h1>
+            <p>Tu plataforma de bolsa de trabajo</p>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='navbar.js') }}"></script>
+</body>
+</html>

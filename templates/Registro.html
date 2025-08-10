@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Workify</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='Forms.css')}}">
+    <meta name="description" content="Regístrate en Workify y encuentra tu próximo trabajo">
+</head>
+<body>
+    <!-- Pattern de fondo sutil -->
+    <div class="background-pattern"></div>
+
+    <div class="div-container-full">
+        <nav class="inicio-regreso">
+            <a href="{{ url_for('inicio') }}" aria-label="Volver al inicio">
+                <img id="imagen-ini" src="{{ url_for('static', filename='images/fecha_inis.png') }}" alt="Volver al inicio">
+            </a>
+        </nav>
+
+        <div class="section-form fade-in">
+            <form class="form" action="" method="post" novalidate>
+                <!-- tag de la clase -->
+                {{ form.hidden_tag() }}
+
+                <!-- Icono de registro -->
+                <div class="form-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="#3B82F6" stroke-width="1.5"/>
+                        <path d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z" stroke="#3B82F6" stroke-width="1.5"/>
+                    </svg>
+                </div>
+
+                <!-- Titulo de Registro -->
+                <h2 id="txt_form">Regístrate</h2>
+
+                <!-- Campo Correo -->
+                <div class="form-group">
+                    <label class="form-label" for="Correo">Correo</label>
+                    {{ form.email(class="form-input", placeholder="ejemplo@correo.com",maxlength="50") }}
+                    {% for error in form.email.errors %}
+                    <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <!-- Campo Contraseña -->
+                <div class="form-group">
+                    <label class="form-label" for="Contraseña">Contraseña</label>
+                    {{ form.password(class="form-input", placeholder="Mínimo 8 caracteres",maxlength="30") }}
+                    {% for error in form.password.errors %}
+                    <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <!-- Campo Confirmar Contraseña -->
+                <div class="form-group">
+                    <label class="form-label" for="confirmar">Confirma contraseña</label>
+                    {{ form.confirmpassword(class="form-input", placeholder="Repite tu contraseña",maxlength="30") }}
+                    {% for error in form.confirmpassword.errors %}
+                    <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <input id="formsubmit" type="submit" value="Crear cuenta">
+            </form>
+        </div>
+    </div>
+</body>
+</html>
