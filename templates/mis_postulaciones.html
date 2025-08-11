@@ -17,24 +17,6 @@
             <p>Revisa el estado de todas tus postulaciones a vacantes</p>
         </div>
 
-        <div class="filters">
-            <div class="filter-group">
-                <label for="status-filter">Filtrar por estado:</label>
-                <select id="status-filter">
-                    <option value="todos">Todas las postulaciones</option>
-                    <option value="pendiente">Pendiente de revisión</option>
-                    <option value="revisando">En revisión</option>
-                    <option value="aceptada">Aceptada</option>
-                    <option value="rechazada">Rechazada</option>
-                </select>
-            </div>
-            <div class="search-box">
-                <input type="text" id="search-input" placeholder="Buscar por empresa o puesto...">
-                <button type="button" id="search-btn">
-                    <i class="search-icon">🔍</i>
-                </button>
-            </div>
-        </div>
 
         <div class="postulaciones-container">
             {% if postulaciones %}

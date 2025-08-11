@@ -1,6 +1,5 @@
-create database bolsa_trabajo_1;
-use bolsa_trabajo_1;
-
+create database bolsa_trabajo_2;
+use bolsa_trabajo_2;
 
 create table estatus(
 	id int auto_increment,
