@@ -19,7 +19,7 @@
         
         <div class="content_informacion">   
            
-            <form class="form-container" method="POST">
+            <form id="form_info" class="form-container" method="POST">
                 <!-- Información Personal -->
                 <div class="form-section">
                     <h3 class="section-title">
@@ -30,12 +30,12 @@
                     <div class="form-grid">
                         <div class="form-field">
                     <label for="nombre">Nombre(s)</label>
-                    <input type="text" id="nombre" name="nombre" placeholder="Ingresa tu nombre" required>
+                    <input type="text" id="nombre" name="nombre" placeholder="Ingresa tu nombre" required maxlength="50">
                         </div>
                     
                         <div class="form-field">
-                    <label for="apellidos">Apellidos</label>
-                    <input type="text" id="apellidos" name="apellidos" placeholder="Ingresa tus apellidos" required>
+                    <label for="apellidos" >Apellidos</label>
+                    <input type="text" id="apellidos" name="apellidos" placeholder="Ingresa tus apellidos" maxlength="50" required>
                         </div>
                     </div>
                 </div>
@@ -129,10 +129,29 @@
                     
                         <div class="form-field">
                     <label for="codigo_postal">Código Postal</label>
-                    <input type="text" id="codigo_postal" name="codigo_postal" placeholder="Ingresa tu código postal" required>
+                    <input type="text" id="codigo_postal" name="codigo_postal" inputmode="numeric" part="\d{8,}" placeholder="Ingresa tu código postal" title="Solo números, obligatorio 5 digitos" required>
                         </div>
                     </div>
                 </div>
+                
+                    <script>
+                    const campoTelefono = document.getElementById('codigo_postal');
+
+                    // Bloquear letras mientras se escribe
+                    campoTelefono.addEventListener('input', function() {
+                    this.value = this.value.replace(/\D/g, ''); // Quita todo lo que no sea dígito
+                    });
+
+                    document.getElementById('form_info').addEventListener('submit', function(e) {
+                    const telefono = campoTelefono.value;
+                    
+                    // Validar que tenga mínimo 8 dígitos
+                    if (telefono.length < 5) {
+                        e.preventDefault(); // Evita el envío
+                        alert('El Código Postal debe tener 5 dígitos y solo números.');
+                    }
+                    });
+                    </script>
                 
                 <div class="submit-container">
                     <button type="submit" id="formsubmit">

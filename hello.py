@@ -654,17 +654,13 @@ def admin_editar_vacante(id):
 def editar_aspirante(id):
     nombre = request.form['nombre']
     apellidos = request.form['apellidos']
-    correo = request.form['correo']
     empleo_deseado = request.form['empleo_deseado']
     experiencia = request.form['experiencia']
     grado_estudios = request.form['grado_estudios']
     ciudad = request.form['ciudad']
     
     try:
-        # Actualizar correo en tabla login
-        update_login = f"UPDATE login SET correo='{correo}' WHERE id={id}"
-        conexion.insert_datos(update_login)
-        
+       
         # Actualizar información en tabla informacion
         update_info = f"""
             UPDATE informacion 

@@ -163,11 +163,11 @@
                 <form id="editUserForm" method="POST">
                     <input type="hidden" name="id" id="edit-id">
                     <label for="edit-username">Nombre de usuario:</label>
-                    <input type="text" name="username" id="edit-username" required>
+                    <input type="text" name="username" id="edit-username" required maxlength="50">
                     <label for="edit-correo">Correo:</label>
-                    <input type="email" name="correo" id="edit-correo" required>
+                    <input type="email" name="correo" id="edit-correo" required maxlength="254">
                     <label for="edit-contra">Contraseña:</label>
-                    <input type="password" name="contra" id="edit-contra" placeholder="Nueva contraseña (opcional)">
+                    <input type="password" name="contra" id="edit-contra" placeholder="(opcional 8-12 caracteres)" minlength="8" maxlength="12">
                     <label for="edit-tipo">Tipo de usuario:</label>
                     <select name="tipo_usuario" id="edit-tipo" required>
                         <option value="admin">Administrador</option>
@@ -186,19 +186,37 @@
             <form id="editVacanteForm" method="POST">
                 <input type="hidden" name="id" id="edit-vacante-id">
                 <label for="edit-titulo">Título:</label>
-                <input type="text" name="titulo" id="edit-titulo" required>
+                <input type="text" name="titulo" id="edit-titulo" required maxlength="150">
                 <label for="edit-descripcion">Descripción:</label>
-                <textarea name="descripcion" id="edit-descripcion" required rows="4"></textarea>
+                <textarea name="descripcion" id="edit-descripcion" required rows="4" maxlength="254"></textarea>
                 <label for="edit-requisitos">Requisitos:</label>
-                <textarea name="requisitos" id="edit-requisitos" required rows="4"></textarea>
+                <textarea name="requisitos" id="edit-requisitos" required rows="4" maxlength="254"></textarea>
                 <label for="edit-beneficios">Beneficios:</label>
-                <textarea name="beneficios" id="edit-beneficios" rows="3"></textarea>
+                <textarea name="beneficios" id="edit-beneficios" rows="3" maxlength="254" required></textarea>
                 <label for="edit-email">Email de contacto:</label>
-                <input type="email" name="email_contacto" id="edit-email" required>
+                <input type="email" name="email_contacto" id="edit-email" required maxlength="254">
                 <label for="edit-telefono">Teléfono de contacto:</label>
-                <input type="text" name="telefono_contacto" id="edit-telefono">
+                <input type="text" name="telefono_contacto" id="edit-telefono" pattern="\d{10,}" title="Debe tener al menos 10 Dígitos" required>
                 <button type="submit">Guardar Cambios</button>
             </form>
+            <script>
+                const campoTelefono = document.getElementById('edit-telefono');
+
+                // Bloquear letras mientras se escribe
+                campoTelefono.addEventListener('input', function() {
+                this.value = this.value.replace(/\D/g, ''); // Quita todo lo que no sea dígito
+                });
+
+                document.getElementById('editVacanteForm').addEventListener('submit', function(e) {
+                const telefono = campoTelefono.value;
+                
+                // Validar que tenga mínimo 8 dígitos
+                if (telefono.length < 8) {
+                    e.preventDefault(); // Evita el envío
+                    alert('El teléfono debe tener al menos 10 dígitos y solo números.');
+                }
+                });
+            </script>
         </div>
     </div>
 
@@ -210,11 +228,9 @@
             <form id="editAspiranteForm" method="POST">
                 <input type="hidden" name="id" id="edit-aspirante-id">
                 <label for="edit-nombre">Nombre:</label>
-                <input type="text" name="nombre" id="edit-nombre" required>
+                <input type="text" name="nombre" id="edit-nombre" required maxlength="50">
                 <label for="edit-apellidos">Apellidos:</label>
-                <input type="text" name="apellidos" id="edit-apellidos" required>
-                <label for="edit-correo">Correo:</label>
-                <input type="email" name="correo" id="edit-correo" required>
+                <input type="text" name="apellidos" id="edit-apellidos" required maxlength="50">
                 <label for="edit-empleo">Empleo Deseado:</label>
                 <input type="text" name="empleo_deseado" id="edit-empleo">
                 <label for="edit-experiencia">Experiencia:</label>
@@ -300,7 +316,6 @@
             document.getElementById('edit-aspirante-id').value = id;
             document.getElementById('edit-nombre').value = nombre;
             document.getElementById('edit-apellidos').value = apellidos;
-            document.getElementById('edit-correo').value = correo;
             document.getElementById('edit-empleo').value = empleo_deseado;
             document.getElementById('edit-experiencia').value = experiencia;
             document.getElementById('edit-grado').value = grado_estudios;
