@@ -304,7 +304,8 @@ body {
 
 .btn-ver-detalles,
 .btn-cancelar,
-.btn-contactar {
+.btn-contactar,
+.btn-eliminar {
     padding: 14px 28px;
     border: none;
     border-radius: 12px;
@@ -349,6 +350,17 @@ body {
     background: #059669;
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+.btn-eliminar {
+    background: #dc2626;
+    color: #FFFFFF;
+}
+
+.btn-eliminar:hover {
+    background: #b91c1c;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);
 }
 
 /* Estado vacío */
@@ -447,7 +459,8 @@ body {
     
     .btn-ver-detalles,
     .btn-cancelar,
-    .btn-contactar {
+    .btn-contactar,
+    .btn-eliminar {
         width: 100%;
     }
     

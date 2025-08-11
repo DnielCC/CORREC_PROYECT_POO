@@ -364,6 +364,33 @@ def cancelar_postulacion():
     else:
         return jsonify({'success': False, 'message': 'Error al cancelar la postulación'})
 
+@app.route('/eliminar_postulacion', methods=['POST'])
+def eliminar_postulacion():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Debes iniciar sesión para continuar'})
+    
+    user_id = session['user_id']
+    postulacion_id = request.form.get('postulacion_id')
+    
+    if not postulacion_id:
+        return jsonify({'success': False, 'message': 'ID de postulación no proporcionado'})
+    
+    # Verificar que la postulación pertenece al usuario
+    query_verificar = "SELECT id FROM postulaciones WHERE id = %s AND id_usuario = %s"
+    postulacion_existente = conexion.get_datos_parametrizados(query_verificar, (postulacion_id, user_id))
+    
+    if not postulacion_existente:
+        return jsonify({'success': False, 'message': 'Postulación no encontrada'})
+    
+    # Eliminar la postulación completamente
+    query_eliminar = "DELETE FROM postulaciones WHERE id = %s"
+    resultado = conexion.delete_datos_parametrizados(query_eliminar, (postulacion_id,))
+    
+    if resultado == 'ok':
+        return jsonify({'success': True, 'message': 'Postulación eliminada exitosamente'})
+    else:
+        return jsonify({'success': False, 'message': 'Error al eliminar la postulación'})
+
 @app.route('/calificar_vacante', methods=['POST'])
 def calificar_vacante():
     if 'user_id' not in session:

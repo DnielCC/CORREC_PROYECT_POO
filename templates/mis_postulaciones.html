@@ -113,6 +113,17 @@
                         </div>
                     </div>
 
+                    <div class="postulacion-actions">
+                        {% if postulacion.estado == 'pendiente' or postulacion.estado == 'revisando' %}
+                            <button class="btn-cancelar" onclick="cancelarPostulacion({{ postulacion.id }})">
+                                Cancelar Postulación
+                            </button>
+                        {% endif %}
+                        <button class="btn-eliminar" onclick="eliminarPostulacion({{ postulacion.id }})">
+                            Eliminar Postulación
+                        </button>
+                    </div>
+
                 </div>
                 {% endfor %}
             {% else %}
@@ -154,6 +165,32 @@
                 .catch(error => {
                     console.error('Error:', error);
                     alert('Error al cancelar la postulación');
+                });
+            }
+        }
+
+        function eliminarPostulacion(postulacionId) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta postulación? Esta acción no se puede deshacer.')) {
+                const formData = new FormData();
+                formData.append('postulacion_id', postulacionId);
+                
+                fetch('/eliminar_postulacion', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Postulación eliminada exitosamente');
+                        // Recargar la página para mostrar el estado actualizado
+                        window.location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al eliminar la postulación');
                 });
             }
         }
