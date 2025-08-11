@@ -17,6 +17,24 @@
             <p>Revisa el estado de todas tus postulaciones a vacantes</p>
         </div>
 
+        <div class="filters">
+            <div class="filter-group">
+                <label for="status-filter">Filtrar por estado:</label>
+                <select id="status-filter">
+                    <option value="todos">Todas las postulaciones</option>
+                    <option value="pendiente">Pendiente de revisión</option>
+                    <option value="revisando">En revisión</option>
+                    <option value="aceptada">Aceptada</option>
+                    <option value="rechazada">Rechazada</option>
+                </select>
+            </div>
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Buscar por empresa o puesto...">
+                <button type="button" id="search-btn">
+                    <i class="search-icon">🔍</i>
+                </button>
+            </div>
+        </div>
 
         <div class="postulaciones-container">
             {% if postulaciones %}
@@ -24,7 +42,7 @@
                 <div class="postulacion-card" data-status="{{ postulacion.estado }}">
                     <div class="postulacion-header">
                         <div class="empresa-info">
-                            <img src="{{ url_for('static', filename='images/avatar.png') }}" alt="Logo empresa" class="empresa-logo">
+                            
                             <div class="empresa-details">
                                 <h3>{{ postulacion.titulo }}</h3>
                                 <p class="empresa-nombre">{{ postulacion.empresa }}</p>
@@ -89,12 +107,6 @@
                         </div>
                     </div>
 
-                    <div class="postulacion-actions">
-                        <button class="btn-ver-detalles">Ver Detalles</button>
-                        {% if postulacion.estado == 'pendiente' or postulacion.estado == 'revisando' %}
-                        <button class="btn-cancelar" onclick="cancelarPostulacion({{ postulacion.id }})">Cancelar Postulación</button>
-                        {% endif %}
-                    </div>
                 </div>
                 {% endfor %}
             {% else %}
@@ -140,53 +152,6 @@
             }
         }
 
-        // Filtro por estado
-        document.getElementById('status-filter').addEventListener('change', function() {
-            const status = this.value;
-            const cards = document.querySelectorAll('.postulacion-card');
-            
-            cards.forEach(card => {
-                if (status === 'todos' || card.dataset.status === status) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
-
-        // Búsqueda
-        document.getElementById('search-btn').addEventListener('click', function() {
-            const searchTerm = document.getElementById('search-input').value.toLowerCase();
-            const cards = document.querySelectorAll('.postulacion-card');
-            
-            cards.forEach(card => {
-                const title = card.querySelector('h3').textContent.toLowerCase();
-                const empresa = card.querySelector('.empresa-nombre').textContent.toLowerCase();
-                
-                if (title.includes(searchTerm) || empresa.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
-
-        // Búsqueda en tiempo real
-        document.getElementById('search-input').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const cards = document.querySelectorAll('.postulacion-card');
-            
-            cards.forEach(card => {
-                const title = card.querySelector('h3').textContent.toLowerCase();
-                const empresa = card.querySelector('.empresa-nombre').textContent.toLowerCase();
-                
-                if (title.includes(searchTerm) || empresa.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
     </script>
 </body>
 </html> 
