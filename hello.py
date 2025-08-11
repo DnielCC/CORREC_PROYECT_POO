@@ -733,7 +733,8 @@ def reclutador_postulaciones():
                 COALESCE(e.nombre, 'Sin empresa') as empresa_nombre,
                 p.fecha_postulacion,
                 es.estatus,
-                p.id
+                p.id,
+                p.id_estatus
             FROM postulaciones p
             INNER JOIN vacantes v ON p.id_vacante = v.id
             INNER JOIN login l ON p.id_usuario = l.id
@@ -793,7 +794,7 @@ def reclutador_postulaciones():
 
 @app.route('/reclutador/postulaciones/<int:id>/cambiar-estado', methods=['POST'])
 def cambiar_estado_postulacion(id):
-    if 'user_id' not in session:
+    if 'user_id' not in session or session['user_type'] != 'reclutador':
         return jsonify({'success': False, 'message': 'No autorizado'}), 401
     
     try:
@@ -805,6 +806,7 @@ def cambiar_estado_postulacion(id):
         
         # Verificar que la postulación pertenece a una vacante del reclutador
         user_id = session['user_id']
+        
         query_verificar = '''
             SELECT p.id, p.id_vacante, v.titulo, p.id_usuario FROM postulaciones p
             INNER JOIN vacantes v ON p.id_vacante = v.id

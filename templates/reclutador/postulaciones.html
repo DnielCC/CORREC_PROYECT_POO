@@ -102,10 +102,15 @@
 <!-- Applications Table -->
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Lista de Postulaciones</h3>
+        <h3 class="card-title">Lista de Postulaciones Pendientes</h3>
+        <p style="color: #6B7280; margin: 0; font-size: 0.875rem;">
+            Postulaciones que requieren tu revisión y decisión
+        </p>
     </div>
     
     <div class="table-container">
+
+        
         <table class="table">
             <thead>
                 <tr>
@@ -118,40 +123,48 @@
             </thead>
             <tbody>
                 {% for p in postulaciones %}
-                <tr>
-                    <td>
-                        <div style="font-weight: 600; color: #1F2937;">{{ p[0] }} {{ p[1] }}</div>
-                        <div style="font-size: 0.85em; color: #888;">{{ p[2] }}</div>
-                    </td>
-                    <td>
-                        <div style="font-weight: 600; color: #1F2937;">{{ p[6] }}</div>
-                        <div style="font-size: 0.85em; color: #888;">{{ p[7] }}</div>
-                    </td>
-                    <td>{{ p[8] }}</td>
-                    <td>
-                        <span class="badge {% if p[9] == 'Aceptado' %}badge-success{% elif p[9] == 'Rechazado' %}badge-danger{% elif p[9] == 'En Revisión' %}badge-warning{% else %}badge-secondary{% endif %}">
-                            {{ p[9] }}
-                        </span>
-                    </td>
-                    <td>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <a href="{{ url_for('reclutador_candidato', id=p[4]) }}" class="btn btn-secondary btn-sm" data-tooltip="Ver Perfil">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <button class="btn btn-primary btn-sm" onclick="cambiarEstadoPostulacion('{{ p[10] }}', 'Aceptado')" data-tooltip="Aceptar">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-danger btn-sm" onclick="cambiarEstadoPostulacion('{{ p[10] }}', 'Rechazado')" data-tooltip="Rechazar">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
+                    {% if p[11] != 5 and p[11] != 6 %}
+                    <tr>
+                        <td>
+                            <div style="font-weight: 600; color: #1F2937;">{{ p[0] }} {{ p[1] }}</div>
+                            <div style="font-size: 0.85em; color: #888;">{{ p[2] }}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600; color: #1F2937;">{{ p[6] }}</div>
+                            <div style="font-size: 0.85em; color: #888;">{{ p[7] }}</div>
+                        </td>
+                        <td>{{ p[8] }}</td>
+                        <td>
+                            <span class="badge {% if p[9] == 'En Revisión' %}badge-warning{% else %}badge-secondary{% endif %}">
+                                {{ p[9] }}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <a href="{{ url_for('reclutador_candidato', id=p[4]) }}" class="btn btn-secondary btn-sm" data-tooltip="Ver Perfil">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button class="btn btn-primary btn-sm" onclick="cambiarEstadoPostulacion('{{ p[10] }}', 5)" data-tooltip="Aceptar">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="cambiarEstadoPostulacion('{{ p[10] }}', 6)" data-tooltip="Rechazar">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
                 {% endfor %}
                 
-                {% if not postulaciones %}
+                {% if not postulaciones or not postulaciones|selectattr('11', 'ne', 5)|selectattr('11', 'ne', 6)|list %}
                 <tr>
-                    <td colspan="5" style="text-align:center; color:#888;">No hay postulaciones registradas.</td>
+                    <td colspan="5" style="text-align:center; color:#888;">
+                        <div style="padding: 2rem;">
+                            <i class="fas fa-clipboard-list" style="font-size: 3rem; color: #E5E7EB; margin-bottom: 1rem;"></i>
+                            <p>No hay postulaciones pendientes de revisión</p>
+                            <small>Todas las postulaciones han sido procesadas</small>
+                        </div>
+                    </td>
                 </tr>
                 {% endif %}
             </tbody>
@@ -178,6 +191,148 @@
                 </button>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Aspirantes Aceptados Section -->
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-check-circle" style="color: #10B981; margin-right: 0.5rem;"></i>
+            Aspirantes Aceptados
+        </h3>
+        <p style="color: #6B7280; margin: 0; font-size: 0.875rem;">
+            Candidatos que han sido aceptados para las vacantes
+        </p>
+    </div>
+    
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Candidato</th>
+                    <th>Vacante</th>
+                    <th>Fecha de Aceptación</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in postulaciones %}
+                    {% if p[11] == 5 %}
+                    <tr class="accepted-row">
+                        <td>
+                            <div style="font-weight: 600; color: #10B981;">{{ p[0] }} {{ p[1] }}</div>
+                            <div style="font-size: 0.85em; color: #888;">{{ p[2] }}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600; color: #1F2937;">{{ p[6] }}</div>
+                            <div style="font-size: 0.85em; color: #888;">{{ p[7] }}</div>
+                        </td>
+                        <td>{{ p[8] }}</td>
+                        <td>
+                            <span class="badge badge-success">
+                                ✅ Aceptado
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <a href="{{ url_for('reclutador_candidato', id=p[4]) }}" class="btn btn-secondary btn-sm" data-tooltip="Ver Perfil">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button class="btn btn-warning btn-sm" onclick="cambiarEstadoPostulacion('{{ p[10] }}', 4)" data-tooltip="Volver a Revisión">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if not postulaciones or not postulaciones|selectattr('11', 'equalto', 5)|list %}
+                <tr>
+                    <td colspan="5" style="text-align:center; color:#888;">
+                        <div style="padding: 2rem;">
+                            <i class="fas fa-check-circle" style="font-size: 3rem; color: #E5E7EB; margin-bottom: 1rem;"></i>
+                            <p>No hay aspirantes aceptados aún</p>
+                            <small>Los candidatos aceptados aparecerán aquí</small>
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Aspirantes Rechazados Section -->
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-times-circle" style="color: #EF4444; margin-right: 0.5rem;"></i>
+            Aspirantes Rechazados
+        </h3>
+        <p style="color: #6B7280; margin: 0; font-size: 0.875rem;">
+            Candidatos que no cumplieron con los requisitos de la vacante
+        </p>
+    </div>
+    
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Candidato</th>
+                    <th>Vacante</th>
+                    <th>Fecha de Rechazo</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in postulaciones %}
+                    {% if p[11] == 6 %}
+                    <tr class="rejected-row">
+                        <td>
+                            <div style="font-weight: 600; color: #EF4444;">{{ p[0] }} {{ p[1] }}</div>
+                            <div style="font-size: 0.85em; color: #888;">{{ p[2] }}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight: 600; color: #1F2937;">{{ p[6] }}</div>
+                            <div style="font-size: 0.85em; color: #888;">{{ p[7] }}</div>
+                        </td>
+                        <td>{{ p[8] }}</td>
+                        <td>
+                            <span class="badge badge-danger">
+                                ❌ Rechazado
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <a href="{{ url_for('reclutador_candidato', id=p[4]) }}" class="btn btn-secondary btn-sm" data-tooltip="Ver Perfil">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button class="btn btn-warning btn-sm" onclick="cambiarEstadoPostulacion('{{ p[10] }}', 4)" data-tooltip="Volver a Revisión">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if not postulaciones or not postulaciones|selectattr('11', 'equalto', 6)|list %}
+                <tr>
+                    <td colspan="5" style="text-align:center; color:#888;">
+                        <div style="padding: 2rem;">
+                            <i class="fas fa-times-circle" style="font-size: 3rem; color: #E5E7EB; margin-bottom: 1rem;"></i>
+                            <p>No hay aspirantes rechazados</p>
+                            <small>Los candidatos rechazados aparecerán aquí</small>
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -279,28 +434,64 @@
     box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
     font-weight: 600;
 }
+
+/* Estilos para la sección de aspirantes aceptados */
+.accepted-row {
+    background-color: #F0FDF4 !important;
+    border-left: 4px solid #10B981;
+}
+
+.accepted-row:hover {
+    background-color: #ECFDF5 !important;
+}
+
+.btn-warning {
+    background: #F59E0B;
+    color: white;
+    border: none;
+}
+
+.btn-warning:hover {
+    background: #D97706;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+/* Estilos para la sección de aspirantes rechazados */
+.rejected-row {
+    background-color: #FEF2F2 !important;
+    border-left: 4px solid #EF4444;
+}
+
+.rejected-row:hover {
+    background-color: #FEE2E2 !important;
+}
 </style>
 
 <script>
 function cambiarEstadoPostulacion(idPostulacion, nuevoEstado) {
-    if (confirm(`¿Estás seguro de que quieres cambiar el estado a "${nuevoEstado}"?`)) {
-        // Mapear el estado a los IDs de la base de datos
-        let nuevoEstadoId;
-        if (nuevoEstado === 'Aceptado') {
-            nuevoEstadoId = 5; // ID para Aceptado
-        } else if (nuevoEstado === 'Rechazado') {
-            nuevoEstadoId = 6; // ID para Rechazado
-        } else {
-            nuevoEstadoId = 4; // ID para En Revisión
-        }
-        
+    let mensajeConfirmacion;
+    let nuevoEstadoTexto;
+    
+    if (nuevoEstado === 5) {
+        mensajeConfirmacion = "¿Estás seguro de que quieres ACEPTAR a este candidato?";
+        nuevoEstadoTexto = "Aceptado";
+    } else if (nuevoEstado === 6) {
+        mensajeConfirmacion = "¿Estás seguro de que quieres RECHAZAR a este candidato?";
+        nuevoEstadoTexto = "Rechazado";
+    } else if (nuevoEstado === 4) {
+        mensajeConfirmacion = "¿Estás seguro de que quieres volver a poner en revisión a este candidato?";
+        nuevoEstadoTexto = "En Revisión";
+    }
+    
+    if (confirm(mensajeConfirmacion)) {
         fetch(`/reclutador/postulaciones/${idPostulacion}/cambiar-estado`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                nuevo_estado: nuevoEstadoId
+                nuevo_estado: nuevoEstado
             })
         })
         .then(response => response.json())
