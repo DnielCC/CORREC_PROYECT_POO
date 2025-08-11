@@ -234,9 +234,16 @@ def perfil_usuario():
     user_id = session['user_id']
 
     query = f"""
-        SELECT login.correo, informacion.nombre, informacion.apellidos, 
-               informacion.telefono, empleos.empleo, experiencia.experiencia, 
-               grado_estudios.grado, ciudad_referencia.ciudad, cp.cp
+        SELECT 
+            login.correo, 
+            informacion.nombre, 
+            informacion.apellidos, 
+            COALESCE(informacion.telefono, '') AS telefono,
+            empleos.empleo, 
+            experiencia.experiencia, 
+            grado_estudios.grado, 
+            ciudad_referencia.ciudad, 
+            cp.cp
         FROM informacion
         INNER JOIN login ON informacion.id_usuario = login.id
         INNER JOIN empleos ON informacion.id_empleos = empleos.id
@@ -253,8 +260,10 @@ def perfil_usuario():
         datos = resultado[0]
         usuario = {
             'correo': datos[0],
-            'nombre_completo': datos[1] + ' ' + datos[2],
-            'telefono': datos[3],
+            'nombre': datos[1],
+            'apellidos': datos[2],
+            'nombre_completo': f"{datos[1]} {datos[2]}",
+            'telefono': datos[3] if datos[3] else None,
             'empleo': datos[4],
             'experiencia': datos[5],
             'grado': datos[6],
@@ -266,6 +275,7 @@ def perfil_usuario():
         usuario = None
 
     return render_template('user_perfil.html', usuario=usuario)
+
 
 
 
@@ -1086,12 +1096,13 @@ def reclutador_candidato(id):
         
         reclutador_id = session['user_id']
         
-        # Obtener información completa del candidato
+        # Obtener información completa del candidato, incluyendo teléfono
         query_candidato = '''
             SELECT 
                 i.nombre,
                 i.apellidos,
-                l.correo as email,
+                l.correo AS email,
+                i.telefono,
                 i.id_empleos,
                 i.id_experiencia,
                 i.id_grado_estudios,
@@ -1110,40 +1121,26 @@ def reclutador_candidato(id):
         
         candidato = candidato_data[0]
         
-        # Obtener nombres descriptivos de los IDs
+        # Consultas para datos descriptivos
         empleo_query = "SELECT empleo FROM empleos WHERE id = %s"
         experiencia_query = "SELECT experiencia FROM experiencia WHERE id = %s"
         estudios_query = "SELECT grado FROM grado_estudios WHERE id = %s"
         ciudad_query = "SELECT ciudad FROM ciudad_referencia WHERE id = %s"
         cp_query = "SELECT cp FROM cp WHERE id = %s"
         
-        # Obtener empleo deseado
-        empleo_result = conexion.get_datos_parametrizados(empleo_query, (candidato[3],)) if candidato[3] else None
-        empleo_deseado = empleo_result[0][0] if empleo_result else None
+        empleo_deseado = conexion.get_datos_parametrizados(empleo_query, (candidato[4],))[0][0] if candidato[4] else None
+        experiencia = conexion.get_datos_parametrizados(experiencia_query, (candidato[5],))[0][0] if candidato[5] else None
+        grado_estudios = conexion.get_datos_parametrizados(estudios_query, (candidato[6],))[0][0] if candidato[6] else None
+        ciudad = conexion.get_datos_parametrizados(ciudad_query, (candidato[7],))[0][0] if candidato[7] else None
+        codigo_postal = conexion.get_datos_parametrizados(cp_query, (candidato[8],))[0][0] if candidato[8] else None
         
-        # Obtener experiencia
-        experiencia_result = conexion.get_datos_parametrizados(experiencia_query, (candidato[4],)) if candidato[4] else None
-        experiencia = experiencia_result[0][0] if experiencia_result else None
-        
-        # Obtener grado de estudios
-        estudios_result = conexion.get_datos_parametrizados(estudios_query, (candidato[5],)) if candidato[5] else None
-        grado_estudios = estudios_result[0][0] if estudios_result else None
-        
-        # Obtener ciudad
-        ciudad_result = conexion.get_datos_parametrizados(ciudad_query, (candidato[6],)) if candidato[6] else None
-        ciudad = ciudad_result[0][0] if ciudad_result else None
-        
-        # Obtener código postal
-        cp_result = conexion.get_datos_parametrizados(cp_query, (candidato[7],)) if candidato[7] else None
-        codigo_postal = cp_result[0][0] if cp_result else None
-        
-        # Obtener información de postulaciones del candidato
+        # Postulaciones
         query_postulaciones = '''
             SELECT 
                 v.titulo,
                 p.fecha_postulacion,
                 es.estatus,
-                p.id as id_postulacion
+                p.id AS id_postulacion
             FROM postulaciones p
             INNER JOIN vacantes v ON p.id_vacante = v.id
             INNER JOIN estatus es ON p.id_estatus = es.id
@@ -1153,11 +1150,12 @@ def reclutador_candidato(id):
         '''
         postulaciones = conexion.get_datos_parametrizados(query_postulaciones, (id, reclutador_id,))
         
-        # Crear objeto candidato con datos procesados
+        # Objeto final
         candidato_info = {
             'nombre': candidato[0],
             'apellidos': candidato[1],
             'email': candidato[2],
+            'telefono': candidato[3],
             'empleo_deseado': empleo_deseado,
             'experiencia': experiencia,
             'grado_estudios': grado_estudios,
@@ -1172,6 +1170,7 @@ def reclutador_candidato(id):
         print(f"Error en reclutador_candidato: {e}")
         flash('Error al cargar el perfil del candidato', 'error')
         return redirect(url_for('reclutador_postulaciones'))
+
 
 @app.route('/reclutador/crear_vacante', methods=['GET', 'POST'])
 def reclutador_crear_vacante():

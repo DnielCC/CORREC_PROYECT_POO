@@ -81,11 +81,15 @@
                         </div>
                         <div class="contact-item">
                             <div class="contact-label">Teléfono</div>
-                            <div class="contact-value">No disponible</div>
-                        </div>
-                      
-                    </div>
-                </div>
+                            <div class="contact-value">
+                                {% if candidato.telefono %}
+                                    {{ candidato.telefono }}
+                                {% else %}
+                                    No disponible
+                                {% endif %}
+                            </div>
+                      </div>
+
                 
                 <div class="education-section">
                     <h4 class="section-title">
