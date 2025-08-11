@@ -4,22 +4,275 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Perfil - Workify</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='C_registro_info.css') }}"> 
-    <!-- Font Awesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-light: #eef2ff;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --gray-color: #6c757d;
+            --light-gray: #e9ecef;
+            --border-radius: 10px;
+            --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: #f9fafb;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .profile-edit-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            padding: 0.5rem 0;
+        }
+
+        .back-button i {
+            margin-right: 8px;
+            transition: var(--transition);
+        }
+
+        .back-button:hover {
+            color: var(--secondary-color);
+        }
+
+        .back-button:hover i {
+            transform: translateX(-3px);
+        }
+
+        .profile-header {
+            margin-bottom: 2.5rem;
+            text-align: center;
+        }
+
+        .profile-header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+
+        .profile-header .subtitle {
+            color: var(--gray-color);
+            font-size: 1.05rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .form-section {
+            padding: 2rem;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            color: var(--primary-color);
+            margin-bottom: 1.75rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .section-title i {
+            margin-right: 12px;
+            font-size: 1.1em;
+            background: var(--primary-light);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.75rem;
+        }
+
+        .form-field {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-field label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            color: var(--dark-color);
+            font-size: 0.95rem;
+        }
+
+        .form-field input,
+        .form-field select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background-color: white;
+            color: var(--dark-color);
+        }
+
+        .form-field select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 1em;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+        .submit-section {
+            padding: 1.5rem 2rem;
+            background: var(--primary-light);
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            text-align: center;
+        }
+
+        #formsubmit {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(67, 97, 238, 0.15);
+        }
+
+        #formsubmit i {
+            margin-right: 10px;
+        }
+
+        #formsubmit:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(67, 97, 238, 0.2);
+        }
+
+        /* Efecto de tarjeta elevada al pasar el mouse */
+        .profile-card {
+            transition: var(--transition);
+        }
+
+        .profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .profile-edit-container {
+                padding: 0 1rem;
+                margin: 1.5rem auto;
+            }
+            
+            .profile-header h1 {
+                font-size: 1.7rem;
+            }
+            
+            .form-section {
+                padding: 1.5rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1.25rem;
+            }
+            
+            .section-title {
+                font-size: 1.1rem;
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .profile-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .profile-header .subtitle {
+                font-size: 0.95rem;
+            }
+            
+            .form-section {
+                padding: 1.25rem;
+            }
+            
+            #formsubmit {
+                width: 100%;
+                padding: 14px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="background-pattern"></div>
-    
-    <div class="content_froms">
-        <div id="h1-txt"> 
+    <div class="profile-edit-container">
+        <a href="{{ url_for('perfil_usuario') }}" class="back-button">
+            <i class="fas fa-arrow-left"></i> Volver al perfil
+        </a>
+        
+        <div class="profile-header">
             <h1>Editar Información Personal y Profesional</h1>
-            <p class="subtitle">Actualiza tu perfil para encontrar las mejores oportunidades</p>
+            <p class="subtitle">Completa y actualiza tu información para mejorar tus oportunidades laborales</p>
         </div>
         
-        <div class="content_informacion">   
-            <form class="form-container" method="POST">
-                
+        <div class="profile-card">
+            <form method="POST">
                 <!-- Información Personal -->
                 <div class="form-section">
                     <h3 class="section-title">
@@ -122,32 +375,7 @@
                     </div>
                 </div>
                 
-                <!-- Sección para cambiar contraseña -->
-                <div class="form-section">
-                    <h3 class="section-title">
-                        <i class="fas fa-lock"></i>
-                        Cambiar Contraseña
-                    </h3>
-                    
-                    <div class="form-grid">
-                        <div class="form-field">
-                            <label for="current_password">Contraseña Actual</label>
-                            <input type="password" id="current_password" name="current_password" placeholder="Ingresa tu contraseña actual">
-                        </div>
-                        
-                        <div class="form-field">
-                            <label for="new_password">Nueva Contraseña</label>
-                            <input type="password" id="new_password" name="new_password" placeholder="Mínimo 8 caracteres">
-                        </div>
-                        
-                        <div class="form-field">
-                            <label for="confirm_password">Confirmar Nueva Contraseña</label>
-                            <input type="password" id="confirm_password" name="confirm_password" placeholder="Repite la nueva contraseña">
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="submit-container">
+                <div class="submit-section">
                     <button type="submit" id="formsubmit">
                         <i class="fas fa-save"></i>
                         Guardar Cambios

@@ -9,33 +9,137 @@
     <link rel='stylesheet' href='/static/Inicio_usuarios.css'>
     <!-- Font Awesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Mejorando espacios y presentación */
+        .profile-card {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 30px 40px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .profile-title {
+            text-align: center;
+            font-weight: 700;
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            font-size: 1.1rem;
+            color: #555;
+        }
+
+        .user-name {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .user-detail {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-detail .icon {
+            color: #007bff;
+            min-width: 22px;
+            font-size: 1.3rem;
+        }
+
+        .profile-actions {
+            margin-top: 35px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .profile-actions a {
+            text-decoration: none;
+            padding: 12px 22px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s ease;
+            color: #fff;
+        }
+
+        .btn-edit-profile {
+            background-color: #28a745;
+        }
+        .btn-edit-profile:hover {
+            background-color: #218838;
+        }
+
+        .btn-change-password {
+            background-color: #dc3545;
+        }
+        .btn-change-password:hover {
+            background-color: #c82333;
+        }
+    </style>
 </head>
 <body>  
     {% include 'components/navbar_usuarios.html' %}
 
     <div class="main-content">
-        <div class="profile-header">
-            <h1 class="profile-title">Mi Perfil</h1>
-        </div>
-        
         <div class="profile-card">
+            <h1 class="profile-title">Mi Perfil</h1>
+            
             <div class="profile-info">
                 {% if usuario %}
                     <h2 class="user-name">{{ usuario.nombre_completo }}</h2>
-
-                    <p><strong>Empleo deseado:</strong> {{ usuario.empleo }}</p>
-                    <p><strong>Experiencia:</strong> {{ usuario.experiencia }}</p>
-                    <p><strong>Grado de estudios:</strong> {{ usuario.grado }}</p>
-                    <p><strong>Ciudad:</strong> {{ usuario.ciudad }}</p>
-                    <p><strong>Código postal:</strong> {{ usuario.codigo_postal }}</p>
+                    
+                    <div class="user-detail">
+                        <i class="fas fa-briefcase icon"></i>
+                        <span>{{ usuario.empleo if usuario.empleo else 'No especificado' }}</span>
+                    </div>
+                    
+                    <div class="user-detail">
+                        <i class="fas fa-envelope icon"></i>
+                        <span>{{ usuario.correo if usuario.correo else 'Correo no especificado' }}</span>
+                    </div>
+                    
+                    <div class="user-detail">
+                        <i class="fas fa-chart-line icon"></i>
+                        <span>{{ usuario.experiencia if usuario.experiencia else 'No especificada' }}</span>
+                    </div>
+                    
+                    <div class="user-detail">
+                        <i class="fas fa-graduation-cap icon"></i>
+                        <span>{{ usuario.grado if usuario.grado else 'No especificado' }}</span>
+                    </div>
+                    
+                    <div class="user-detail">
+                        <i class="fas fa-map-marker-alt icon"></i>
+                        <span>{{ usuario.ciudad if usuario.ciudad else 'No especificada' }}, C.P. {{ usuario.codigo_postal if usuario.codigo_postal else 'N/A' }}</span>
+                    </div>
                 {% else %}
                     <p>No se encontró información del perfil.</p>
                 {% endif %}
             </div>
 
             <div class="profile-actions">
-                <a href="{{ url_for('editar_perfil_usuario') }}" class="btn-change-password">
+                <a href="{{ url_for('editar_perfil_usuario') }}" class="btn-edit-profile">
                     <i class="fas fa-edit"></i> Editar perfil
+                </a>
+                <a href="{{ url_for('cambiar_contrasena') }}" class="btn-change-password">
+                    <i class="fas fa-key"></i> Cambiar contraseña
                 </a>
             </div>
         </div>

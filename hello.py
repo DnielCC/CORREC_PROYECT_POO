@@ -213,10 +213,11 @@ def perfil_usuario():
     user_id = session['user_id']
 
     query = f"""
-        SELECT nombre, apellidos, 
+        SELECT login.correo, informacion.nombre, informacion.apellidos, 
                empleos.empleo, experiencia.experiencia, 
                grado_estudios.grado, ciudad_referencia.ciudad, cp.cp
         FROM informacion
+        INNER JOIN login ON informacion.id_usuario = login.id
         INNER JOIN empleos ON informacion.id_empleos = empleos.id
         INNER JOIN experiencia ON informacion.id_experiencia = experiencia.id
         INNER JOIN grado_estudios ON informacion.id_grado_estudios = grado_estudios.id
@@ -230,18 +231,20 @@ def perfil_usuario():
     if resultado:
         datos = resultado[0]
         usuario = {
-            'nombre_completo': datos[0] + ' ' + datos[1],
-            'empleo': datos[2],
-            'experiencia': datos[3],
-            'grado': datos[4],
-            'ciudad': datos[5],
-            'codigo_postal': datos[6]
+            'correo': datos[0],
+            'nombre_completo': datos[1] + ' ' + datos[2],
+            'empleo': datos[3],
+            'experiencia': datos[4],
+            'grado': datos[5],
+            'ciudad': datos[6],
+            'codigo_postal': datos[7]
         }
     else:
         flash("Perfil no encontrado. Completa tu información.", "info")
         usuario = None
 
     return render_template('user_perfil.html', usuario=usuario)
+
 
 
 @app.route('/user/postulaciones')
@@ -1860,7 +1863,6 @@ def editar_perfil_usuario():
     user_id = session['user_id']
 
     if request.method == 'POST':
-        # Datos del formulario principal
         nombre = request.form.get('nombre')
         apellidos = request.form.get('apellidos')
         empleo = request.form.get('empleos_deseados')
@@ -1868,37 +1870,9 @@ def editar_perfil_usuario():
         grado = request.form.get('grado_estudio')
         ciudad = request.form.get('ciudad')
         cp = request.form.get('codigo_postal')
-        
-        # Datos para cambio de contraseña
-        current_password = request.form.get('current_password')
-        new_password = request.form.get('new_password')
-        confirm_password = request.form.get('confirm_password')
 
         try:
-            # Procesar cambio de contraseña si se proporcionaron los campos
-            if current_password and new_password and confirm_password:
-                if new_password != confirm_password:
-                    flash('Las nuevas contraseñas no coinciden.', 'error')
-                    return redirect(url_for('editar_perfil_usuario'))
-                
-                # Verificar contraseña actual
-                user_data = conexion.get_datos(f"SELECT contra FROM login WHERE id = {user_id}")
-                if not user_data:
-                    flash('Usuario no encontrado.', 'error')
-                    return redirect(url_for('editar_perfil_usuario'))
-                
-                # Aquí deberías verificar la contraseña actual con el hash almacenado
-                # Esto es un ejemplo básico, deberías usar funciones de hash como bcrypt
-                if current_password != user_data[0][0]:  # Esto es inseguro, solo para ejemplo
-                    flash('La contraseña actual es incorrecta.', 'error')
-                    return redirect(url_for('editar_perfil_usuario'))
-                
-                # Actualizar contraseña
-                conexion.insert_datos(f"UPDATE login SET contra = '{new_password}' WHERE id = {user_id}")
-                flash('Contraseña actualizada correctamente.', 'success')
-
-            # Procesar actualización de perfil
-            # Buscar IDs relacionados igual que en info()
+            # Buscar IDs relacionados
             id_empleo = conexion.get_datos(f"SELECT id FROM empleos WHERE empleo LIKE BINARY '{empleo}' LIMIT 1")[0][0]
             id_exp = conexion.get_datos(f"SELECT id FROM experiencia WHERE experiencia LIKE BINARY '{experiencia}' LIMIT 1")[0][0]
             id_grado = conexion.get_datos(f"SELECT id FROM grado_estudios WHERE grado LIKE BINARY '{grado}' LIMIT 1")[0][0]
@@ -1928,7 +1902,7 @@ def editar_perfil_usuario():
         except Exception as e:
             flash(f'Error al actualizar: {e}', 'error')
 
-    # Si es GET, traer datos actuales para mostrarlos en el formulario
+    # Si es GET, traer datos actuales
     query = f"""
         SELECT nombre, apellidos, empleos.empleo, experiencia.experiencia, 
                grado_estudios.grado, ciudad_referencia.ciudad, cp.cp
@@ -1956,8 +1930,56 @@ def editar_perfil_usuario():
     }
 
     return render_template('editar_perfil.html', usuario=usuario)
-#----------------------------------------------
 
+#---------- RUTA PARA CAMBIAR CONTRASEÑA ----------
+@app.route('/user/cambiar_contrasena', methods=['GET', 'POST'])
+def cambiar_contrasena():
+    if 'user_id' not in session:
+        flash('Debes iniciar sesión para continuar.', 'error')
+        return redirect(url_for('user_login'))
+
+    user_id = session['user_id']
+
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+
+        try:
+            # Validaciones básicas
+            if not all([current_password, new_password, confirm_password]):
+                flash('Todos los campos son obligatorios.', 'error')
+                return redirect(url_for('cambiar_contrasena'))
+
+            if new_password != confirm_password:
+                flash('Las nuevas contraseñas no coinciden.', 'error')
+                return redirect(url_for('cambiar_contrasena'))
+
+            if len(new_password) < 8:
+                flash('La contraseña debe tener al menos 8 caracteres.', 'error')
+                return redirect(url_for('cambiar_contrasena'))
+
+            # Obtener contraseña actual del usuario
+            user_data = conexion.get_datos(f"SELECT contra FROM login WHERE id = {user_id}")
+            if not user_data:
+                flash('Usuario no encontrado.', 'error')
+                return redirect(url_for('cambiar_contrasena'))
+
+            # NOTA: Esto es inseguro - en producción usa check_password_hash
+            if current_password != user_data[0][0]:
+                flash('La contraseña actual es incorrecta.', 'error')
+                return redirect(url_for('cambiar_contrasena'))
+
+            # Actualizar contraseña
+            conexion.insert_datos(f"UPDATE login SET contra = '{new_password}' WHERE id = {user_id}")
+
+            flash('Contraseña actualizada correctamente.', 'success')
+            return redirect(url_for('perfil_usuario'))
+
+        except Exception as e:
+            flash(f'Error al actualizar la contraseña: {str(e)}', 'error')
+
+    return render_template('cambiar_contrasena.html')
 
 if __name__ == "__main__":
     app.run(debug=True)
