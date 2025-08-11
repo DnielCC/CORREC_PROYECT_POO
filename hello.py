@@ -234,6 +234,7 @@ def perfil_usuario():
     user_id = session['user_id']
 
     query = f"""
+<<<<<<< HEAD
         SELECT 
             login.correo, 
             informacion.nombre, 
@@ -244,6 +245,11 @@ def perfil_usuario():
             grado_estudios.grado, 
             ciudad_referencia.ciudad, 
             cp.cp
+=======
+        SELECT login.correo, informacion.nombre, informacion.apellidos, 
+               empleos.empleo, experiencia.experiencia, 
+               grado_estudios.grado, ciudad_referencia.ciudad, cp.cp
+>>>>>>> parent of 1190264 (Telefono Agregado en Perfil y Editar Perfil)
         FROM informacion
         INNER JOIN login ON informacion.id_usuario = login.id
         INNER JOIN empleos ON informacion.id_empleos = empleos.id
@@ -260,6 +266,7 @@ def perfil_usuario():
         datos = resultado[0]
         usuario = {
             'correo': datos[0],
+<<<<<<< HEAD
             'nombre': datos[1],
             'apellidos': datos[2],
             'nombre_completo': f"{datos[1]} {datos[2]}",
@@ -269,6 +276,14 @@ def perfil_usuario():
             'grado': datos[6],
             'ciudad': datos[7],
             'codigo_postal': datos[8]
+=======
+            'nombre_completo': datos[1] + ' ' + datos[2],
+            'empleo': datos[3],
+            'experiencia': datos[4],
+            'grado': datos[5],
+            'ciudad': datos[6],
+            'codigo_postal': datos[7]
+>>>>>>> parent of 1190264 (Telefono Agregado en Perfil y Editar Perfil)
         }
     else:
         flash("Perfil no encontrado. Completa tu información.", "info")
@@ -278,8 +293,11 @@ def perfil_usuario():
 
 
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> parent of 1190264 (Telefono Agregado en Perfil y Editar Perfil)
 @app.route('/user/postulaciones')
 def mis_postulaciones():
     if 'user_id' not in session:
@@ -1889,7 +1907,6 @@ def editar_perfil_usuario():
     if request.method == 'POST':
         nombre = request.form.get('nombre')
         apellidos = request.form.get('apellidos')
-        telefono = request.form.get('telefono')  # <-- Nuevo campo
         empleo = request.form.get('empleos_deseados')
         experiencia = request.form.get('experiencia_previa')
         grado = request.form.get('grado_estudio')
@@ -1910,10 +1927,10 @@ def editar_perfil_usuario():
                 id_cp_data = conexion.get_datos(f"SELECT id FROM cp WHERE cp = '{cp}' ORDER BY id DESC LIMIT 1")
             id_cp = id_cp_data[0][0]
 
-            # Actualizar datos (incluye teléfono)
+            # Actualizar datos
             update_query = f"""
                 UPDATE informacion
-                SET nombre = '{nombre}', apellidos = '{apellidos}', telefono = '{telefono}',
+                SET nombre = '{nombre}', apellidos = '{apellidos}',
                     id_empleos = {id_empleo}, id_experiencia = {id_exp},
                     id_grado_estudios = {id_grado}, id_ciudad = {id_ciudad},
                     id_cp = {id_cp}
@@ -1929,7 +1946,7 @@ def editar_perfil_usuario():
 
     # Si es GET, traer datos actuales
     query = f"""
-        SELECT nombre, apellidos, telefono, empleos.empleo, experiencia.experiencia, 
+        SELECT nombre, apellidos, empleos.empleo, experiencia.experiencia, 
                grado_estudios.grado, ciudad_referencia.ciudad, cp.cp
         FROM informacion
         INNER JOIN empleos ON informacion.id_empleos = empleos.id
@@ -1947,16 +1964,14 @@ def editar_perfil_usuario():
     usuario = {
         'nombre': datos[0][0],
         'apellidos': datos[0][1],
-        'telefono': datos[0][2],  # <-- Ahora se pasa al template
-        'empleo': datos[0][3],
-        'experiencia': datos[0][4],
-        'grado': datos[0][5],
-        'ciudad': datos[0][6],
-        'codigo_postal': datos[0][7]
+        'empleo': datos[0][2],
+        'experiencia': datos[0][3],
+        'grado': datos[0][4],
+        'ciudad': datos[0][5],
+        'codigo_postal': datos[0][6]
     }
 
     return render_template('editar_perfil.html', usuario=usuario)
-
 
 #---------- RUTA PARA CAMBIAR CONTRASEÑA ----------
 @app.route('/user/cambiar_contrasena', methods=['GET', 'POST'])
