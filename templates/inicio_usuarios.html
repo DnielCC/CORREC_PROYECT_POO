@@ -54,18 +54,6 @@
                             {% endif %}
                         </div>
                         
-                        <!-- Sistema de calificación -->
-                        <div class="rating-section">
-                            <div class="stars">
-                                <span class="star" data-rating="1" onclick="calificarVacante({{ vacante.id }}, 1)">★</span>
-                                <span class="star" data-rating="2" onclick="calificarVacante({{ vacante.id }}, 2)">★</span>
-                                <span class="star" data-rating="3" onclick="calificarVacante({{ vacante.id }}, 3)">★</span>
-                                <span class="star" data-rating="4" onclick="calificarVacante({{ vacante.id }}, 4)">★</span>
-                                <span class="star" data-rating="5" onclick="calificarVacante({{ vacante.id }}, 5)">★</span>
-                            </div>
-                            <small class="rating-text">Califica esta vacante</small>
-                        </div>
-                        
                         <button class="btn-apply" onclick="aplicarVacante({{ vacante.id }})">Aplicar ahora</button>
                     </div>
                     {% endfor %}
@@ -81,7 +69,7 @@
     <!-- Script para la navbar -->
     <script src="{{ url_for('static', filename='navbar.js') }}"></script>
     
-    <!-- Script para aplicar a vacantes y calificación -->
+    <!-- Script para aplicar a vacantes -->
     <script>
         function aplicarVacante(vacanteId) {
             // Verificar si el usuario está logueado
@@ -117,70 +105,6 @@
                 window.location.href = '/login';
             {% endif %}
         }
-
-        function calificarVacante(vacanteId, rating) {
-            {% if session.user_id %}
-                // Enviar calificación
-                fetch('/calificar_vacante', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        vacante_id: vacanteId,
-                        calificacion: rating
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Actualizar estrellas visualmente
-                        const stars = document.querySelectorAll(`[data-vacante-id="${vacanteId}"] .star`);
-                        stars.forEach((star, index) => {
-                            if (index < rating) {
-                                star.classList.add('active');
-                            } else {
-                                star.classList.remove('active');
-                            }
-                        });
-                        alert('¡Calificación enviada!');
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error al enviar la calificación');
-                });
-            {% else %}
-                alert('Debes iniciar sesión para calificar');
-            {% endif %}
-        }
-
-        // Inicializar estrellas
-        document.addEventListener('DOMContentLoaded', function() {
-            const stars = document.querySelectorAll('.star');
-            stars.forEach(star => {
-                star.addEventListener('mouseenter', function() {
-                    const rating = this.dataset.rating;
-                    const parentStars = this.parentElement.children;
-                    for (let i = 0; i < parentStars.length; i++) {
-                        if (i < rating) {
-                            parentStars[i].classList.add('hover');
-                        } else {
-                            parentStars[i].classList.remove('hover');
-                        }
-                    }
-                });
-
-                star.addEventListener('mouseleave', function() {
-                    const parentStars = this.parentElement.children;
-                    for (let i = 0; i < parentStars.length; i++) {
-                        parentStars[i].classList.remove('hover');
-                    }
-                });
-            });
-        });
     </script>
 </body>
 </html>
