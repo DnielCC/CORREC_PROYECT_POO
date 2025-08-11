@@ -1002,32 +1002,36 @@ def cambiar_estado_postulacion(id):
         # Actualizar el estado de la postulación
         query_actualizar = "UPDATE postulaciones SET id_estatus = %s WHERE id = %s"
         resultado = conexion.update_datos_parametrizados(query_actualizar, (nuevo_estado, id))
+
+        # La función update_datos_parametrizados devuelve una cadena como
+        # "Registros actualizados: X" o un mensaje de error. Consideramos éxito
+        # cuando incluye "Registros actualizados" (aunque X sea 0, que indica
+        # que el estado ya era el mismo) o cuando retorna 'ok'.
+        exito_update = False
+        if isinstance(resultado, str):
+            if resultado.strip().lower() == 'ok':
+                exito_update = True
+            elif 'Registros actualizados' in resultado:
+                try:
+                    partes = resultado.split(':')
+                    actualizados = int(partes[-1].strip()) if len(partes) > 1 else 0
+                    # Aceptamos 0 como éxito porque el valor podría no haber cambiado
+                    exito_update = actualizados >= 0
+                except Exception:
+                    # Si no se puede parsear, pero contiene el texto esperado, lo tomamos como éxito
+                    exito_update = True
         
-        if resultado == 'ok':
+        if exito_update:
             # Obtener el nombre del estado para el mensaje
             query_estado = "SELECT estatus FROM estatus WHERE id = %s"
             estado_info = conexion.get_datos_parametrizados(query_estado, (nuevo_estado,))
             nombre_estado = estado_info[0][0] if estado_info else 'Actualizado'
             
-            # Registrar la actualización en un log o tabla de historial (opcional)
+            # Registrar la actualización en un log (opcional)
             try:
-                query_historial = """
-                    INSERT INTO historial_estados_postulaciones 
-                    (id_postulacion, id_usuario, id_estado_anterior, id_estado_nuevo, fecha_cambio, id_reclutador)
-                    VALUES (%s, %s, 
-                        (SELECT id_estatus FROM postulaciones WHERE id = %s), 
-                        %s, NOW(), %s)
-                """
-                # Obtener el estado anterior antes de actualizar
-                estado_anterior = conexion.get_datos_parametrizados(
-                    "SELECT id_estatus FROM postulaciones WHERE id = %s", (id,)
-                )
-                if estado_anterior:
-                    id_estado_anterior = estado_anterior[0][0]
-                    conexion.insert_datos_parametrizados(query_historial, 
-                        (id, id_usuario_postulacion, id_estado_anterior, nuevo_estado, user_id))
+                print(f"Postulación {id} actualizada a estado {nuevo_estado} ({nombre_estado}) por reclutador {user_id}")
             except Exception as e:
-                print(f"Error al registrar historial: {e}")
+                print(f"Error al registrar log: {e}")
                 # No es crítico, continuar
             
             return jsonify({
@@ -1039,7 +1043,7 @@ def cambiar_estado_postulacion(id):
                 'id_usuario': id_usuario_postulacion
             })
         else:
-            return jsonify({'success': False, 'message': 'Error al actualizar el estado'}), 500
+            return jsonify({'success': False, 'message': f'Error al actualizar el estado: {resultado}'}), 500
             
     except Exception as e:
         print(f"Error al cambiar estado de postulación: {str(e)}")
@@ -1056,6 +1060,8 @@ def reclutador_candidato(id):
         if not conexion.connection:
             flash('Error de conexión a la base de datos', 'error')
             return redirect(url_for('reclutador_postulaciones'))
+        
+        reclutador_id = session['user_id']
         
         # Obtener información completa del candidato
         query_candidato = '''
@@ -1118,11 +1124,11 @@ def reclutador_candidato(id):
             FROM postulaciones p
             INNER JOIN vacantes v ON p.id_vacante = v.id
             INNER JOIN estatus es ON p.id_estatus = es.id
-            WHERE p.id_usuario = %s
+            WHERE p.id_usuario = %s AND v.id_usuario = %s
             ORDER BY p.fecha_postulacion DESC
             LIMIT 5
         '''
-        postulaciones = conexion.get_datos_parametrizados(query_postulaciones, (id,))
+        postulaciones = conexion.get_datos_parametrizados(query_postulaciones, (id, reclutador_id,))
         
         # Crear objeto candidato con datos procesados
         candidato_info = {

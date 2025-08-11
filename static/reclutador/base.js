@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize status badge animations
     initializeStatusBadges();
+
+    // Inicializar selects de estado si existen
+    initializeEstadoDropdowns();
 });
 
 function initializeTooltips() {
@@ -137,6 +140,52 @@ function initializeStatusBadges() {
     });
 }
 
+function initializeEstadoDropdowns() {
+    const selects = document.querySelectorAll('.estado-select');
+    selects.forEach(select => {
+        // Guardar el valor inicial por si se cancela
+        select.dataset.prev = select.value;
+        select.addEventListener('change', function() {
+            const self = this;
+            const postulacionId = self.getAttribute('data-postulacion-id');
+            const nuevoEstado = parseInt(self.value, 10);
+            const prev = parseInt(self.dataset.prev, 10);
+
+            const estadoMap = { 4: 'En Revisión', 5: 'Aceptado', 6: 'Rechazado' };
+            const nombreEstado = estadoMap[nuevoEstado] || 'Desconocido';
+
+            // Confirmación
+            const mensaje = `¿Cambiar estado a "${nombreEstado}"?`;
+            confirmAction(mensaje, () => {
+                // Ejecutar actualización
+                fetch(`/reclutador/postulaciones/${postulacionId}/cambiar-estado`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nuevo_estado: nuevoEstado })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(`Estado actualizado a "${nombreEstado}"`, 'success');
+                        self.dataset.prev = String(nuevoEstado);
+                    } else {
+                        self.value = String(prev);
+                        showNotification(`Error: ${data.message}`, 'error');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    self.value = String(prev);
+                    showNotification('Error al cambiar el estado', 'error');
+                });
+            }, () => {
+                // Cancelado: revertir select
+                self.value = String(prev);
+            });
+        });
+    });
+}
+
 // Utility functions
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
@@ -175,7 +224,7 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-function confirmAction(message, callback) {
+function confirmAction(message, onConfirm, onCancel) {
     const modal = document.createElement('div');
     modal.className = 'confirm-modal';
     modal.style.cssText = `
@@ -190,7 +239,7 @@ function confirmAction(message, callback) {
         justify-content: center;
         z-index: 10000;
     `;
-    
+
     const modalContent = document.createElement('div');
     modalContent.style.cssText = `
         background: white;
@@ -200,16 +249,43 @@ function confirmAction(message, callback) {
         width: 90%;
         text-align: center;
     `;
-    
-    modalContent.innerHTML = `
-        <h3 style="margin-bottom: 1rem; color: #1F2937;">Confirmar Acción</h3>
-        <p style="margin-bottom: 1.5rem; color: #6B7280;">${message}</p>
-        <div style="display: flex; gap: 1rem; justify-content: center;">
-            <button class="btn btn-secondary" onclick="this.closest('.confirm-modal').remove()">Cancelar</button>
-            <button class="btn btn-danger" onclick="this.closest('.confirm-modal').remove(); ${callback}()">Confirmar</button>
-        </div>
-    `;
-    
+
+    // Título
+    const title = document.createElement('h3');
+    title.textContent = 'Confirmar Acción';
+    title.style.cssText = 'margin-bottom: 1rem; color: #1F2937;';
+    modalContent.appendChild(title);
+
+    // Mensaje
+    const msg = document.createElement('p');
+    msg.textContent = message;
+    msg.style.cssText = 'margin-bottom: 1.5rem; color: #6B7280;';
+    modalContent.appendChild(msg);
+
+    // Contenedor de botones
+    const actions = document.createElement('div');
+    actions.style.cssText = 'display: flex; gap: 1rem; justify-content: center;';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn btn-secondary';
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.onclick = () => {
+        modal.remove();
+        if (typeof onCancel === 'function') onCancel();
+    };
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.className = 'btn btn-danger';
+    confirmBtn.textContent = 'Confirmar';
+    confirmBtn.onclick = () => {
+        modal.remove();
+        if (typeof onConfirm === 'function') onConfirm();
+    };
+
+    actions.appendChild(cancelBtn);
+    actions.appendChild(confirmBtn);
+    modalContent.appendChild(actions);
+
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
 }
@@ -255,22 +331,22 @@ document.head.appendChild(style);
 
 // Función para cambiar el estado de una postulación
 function cambiarEstadoPostulacion(postulacionId, nuevoEstado) {
-    // Mapear estados a IDs según la base de datos
+    // Mapear IDs de estado a nombres para mostrar
     const estadoMap = {
-        'En Revisión': 4,
-        'Aceptado': 5,
-        'Rechazado': 6
+        4: 'En Revisión',
+        5: 'Aceptado',
+        6: 'Rechazado'
     };
     
-    const estadoId = estadoMap[nuevoEstado];
+    const nombreEstado = estadoMap[nuevoEstado];
     
-    if (!estadoId) {
+    if (!nombreEstado) {
         showNotification('Estado no válido', 'error');
         return;
     }
     
     // Confirmar la acción
-    const mensaje = `¿Estás seguro de que quieres cambiar el estado a "${nuevoEstado}"?`;
+    const mensaje = `¿Estás seguro de que quieres cambiar el estado a "${nombreEstado}"?`;
     confirmAction(mensaje, () => {
         // Realizar la petición AJAX
         fetch(`/reclutador/postulaciones/${postulacionId}/cambiar-estado`, {
@@ -279,13 +355,13 @@ function cambiarEstadoPostulacion(postulacionId, nuevoEstado) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                nuevo_estado: estadoId
+                nuevo_estado: nuevoEstado
             })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showNotification(`Estado cambiado exitosamente a "${nuevoEstado}"`, 'success');
+                showNotification(`Estado cambiado exitosamente a "${nombreEstado}"`, 'success');
                 // Recargar la página para mostrar los cambios
                 setTimeout(() => {
                     window.location.reload();
@@ -297,6 +373,12 @@ function cambiarEstadoPostulacion(postulacionId, nuevoEstado) {
         .catch(error => {
             console.error('Error:', error);
             showNotification('Error al cambiar el estado', 'error');
+        });
+    }, () => {
+        // Si cancela, revertimos el select
+        const selects = document.querySelectorAll(`.estado-select[data-postulacion-id="${postulacionId}"]`);
+        selects.forEach(sel => {
+            sel.value = String(Object.keys({4:4,5:5,6:6}).includes(String(sel.dataset.prev)) ? sel.dataset.prev : sel.value);
         });
     });
 } 

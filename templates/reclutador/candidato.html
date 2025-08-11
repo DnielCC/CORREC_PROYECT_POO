@@ -19,14 +19,6 @@
             <i class="fas fa-arrow-left"></i>
             Volver a Postulaciones
         </a>
-                        <button class="btn btn-primary" onclick="acceptCandidate()" id="btn-aceptar">
-                    <i class="fas fa-check"></i>
-                    Aceptar Candidato
-                </button>
-                <button class="btn btn-danger" onclick="rejectCandidate()" id="btn-rechazar">
-                    <i class="fas fa-times"></i>
-                    Rechazar
-                </button>
     </div>
 </div>
 
@@ -36,7 +28,7 @@
     <div class="card" style="grid-column: span 2;">
         <div class="card-header">
             <h3 class="card-title">Información Personal y Profesional</h3>
-            <span class="badge badge-warning">En Revisión</span>
+            <span class="badge badge-warning" id="estado-badge">En Revisión</span>
         </div>
         
         <div class="card-body">
@@ -274,7 +266,7 @@
                             <td style="padding: 0.75rem; color: #1F2937;">{{ p[0] }}</td>
                             <td style="padding: 0.75rem; color: #6B7280;">{{ p[1].strftime('%d/%m/%Y %H:%M') if p[1] else 'N/A' }}</td>
                             <td style="padding: 0.75rem;">
-                                <span class="badge {% if p[2] == 'Aceptado' %}badge-success{% elif p[2] == 'Rechazado' %}badge-danger{% elif p[2] == 'En Revisión' %}badge-warning{% else %}badge-secondary{% endif %}">
+                                <span class="badge {% if p[2] == 'Aceptado' %}badge-success{% elif p[2] == 'Rechazado' %}badge-danger{% elif p[2] == 'En Revisión' %}badge-warning{% else %}badge-secondary{% endif %}" data-postulacion-id="{{ p[3] }}">
                                     {{ p[2] }}
                                 </span>
                             </td>
@@ -339,15 +331,7 @@
                     Compartir Perfil
                 </button>
                 
-                <div style="padding-top: 1rem; border-top: 1px solid #E5E7EB;">
-                    <div style="font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Estado de la Postulación</div>
-                    <select class="form-select" onchange="updateStatus(this.value)">
-                        <option value="review" selected>En Revisión</option>
-                        <option value="interview">Entrevista Programada</option>
-                        <option value="accepted">Aceptado</option>
-                        <option value="rejected">Rechazado</option>
-                        <option value="hired">Contratado</option>
-                    </select>
+            
                 </div>
             </div>
         </div>
@@ -357,8 +341,21 @@
 
 {% block extra_js %}
 <script>
-// Variable global para almacenar el ID de la postulación actual
-let currentPostulationId = null;
+// Detectar la primera postulación del candidato que pertenece a este reclutador
+let currentPostulationId = (function() {
+    const filas = document.querySelectorAll('table tbody tr');
+    for (const tr of filas) {
+        const celdas = tr.querySelectorAll('td');
+        if (celdas.length >= 3) {
+            // El id de postulación está en el dataset si lo agregamos, o lo obtendremos del texto si está renderizado
+            const idSpan = tr.querySelector('[data-postulacion-id]');
+            if (idSpan) {
+                return parseInt(idSpan.getAttribute('data-postulacion-id'), 10);
+            }
+        }
+    }
+    return null;
+})();
 
 function acceptCandidate() {
     if (!currentPostulationId) {
@@ -397,7 +394,7 @@ function cambiarEstadoPostulacion(postulacionId, nuevoEstado) {
             showNotification(data.message, 'success');
             
             // Actualizar el badge de estado
-            const badge = document.querySelector('.badge');
+            const badge = document.getElementById('estado-badge');
             if (badge) {
                 if (nuevoEstado === 5) { // Aceptado
                     badge.className = 'badge badge-success';
