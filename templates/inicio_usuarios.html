@@ -86,12 +86,26 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
+                        // Eliminar la tarjeta del DOM
+                        const card = document.querySelector(`[data-vacante-id="${vacanteId}"]`);
+                        if (card) {
+                            card.remove();
+                        }
+                        
+                        // Si ya no hay tarjetas, mostrar estado vacío
+                        const remaining = document.querySelectorAll('.job-card');
+                        if (remaining.length === 0) {
+                            const grid = document.querySelector('.jobs-grid');
+                            if (grid) {
+                                grid.innerHTML = `
+                                    <div class="no-vacantes">
+                                        <p>No hay vacantes disponibles en este momento.</p>
+                                    </div>
+                                `;
+                            }
+                        }
+                        
                         alert('¡Postulación enviada exitosamente!');
-                        // Deshabilitar el botón
-                        const boton = document.querySelector(`[data-vacante-id="${vacanteId}"] .btn-apply`);
-                        boton.textContent = 'Postulado';
-                        boton.disabled = true;
-                        boton.style.backgroundColor = '#6c757d';
                     } else {
                         alert('Error: ' + data.message);
                     }

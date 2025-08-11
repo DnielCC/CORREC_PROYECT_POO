@@ -166,24 +166,45 @@ def info():
 @app.route('/inicio/usuarios')
 def inicio_usuarios():
     # Obtener todas las vacantes activas de la base de datos
-    query_vacantes = """
-        SELECT v.id, v.titulo, e.nombre as empresa, 
-               CONCAT(u.ciudad, ', ', u.estado, ', ', u.pais) as ubicacion,
-               tt.nombre as tipo_contrato, v.descripcion, 
-               v.salario_minimo, v.salario_maximo, mt.nombre as modalidad,
-               es.estatus as estado, v.fecha_publicacion
-        FROM vacantes v
-        INNER JOIN empresas e ON v.id_empresa = e.id
-        INNER JOIN ubicaciones u ON v.id_ubicacion = u.id
-        INNER JOIN tipos_trabajo tt ON v.id_tipo_trabajo = tt.id
-        INNER JOIN modalidades_trabajo mt ON v.id_modalidad_trabajo = mt.id
-        LEFT JOIN estado_vacantes ev ON v.id = ev.id_vacante
-        LEFT JOIN estatus es ON ev.id_estatus = es.id
-        WHERE es.estatus = 'Activa' OR es.estatus IS NULL
-        ORDER BY v.fecha_publicacion DESC
-    """
-    
-    vacantes = conexion.get_datos(query_vacantes)
+    if 'user_id' in session:
+        user_id = session['user_id']
+        query_vacantes = """
+            SELECT v.id, v.titulo, e.nombre as empresa, 
+                   CONCAT(u.ciudad, ', ', u.estado, ', ', u.pais) as ubicacion,
+                   tt.nombre as tipo_contrato, v.descripcion, 
+                   v.salario_minimo, v.salario_maximo, mt.nombre as modalidad,
+                   es.estatus as estado, v.fecha_publicacion
+            FROM vacantes v
+            INNER JOIN empresas e ON v.id_empresa = e.id
+            INNER JOIN ubicaciones u ON v.id_ubicacion = u.id
+            INNER JOIN tipos_trabajo tt ON v.id_tipo_trabajo = tt.id
+            INNER JOIN modalidades_trabajo mt ON v.id_modalidad_trabajo = mt.id
+            LEFT JOIN estado_vacantes ev ON v.id = ev.id_vacante
+            LEFT JOIN estatus es ON ev.id_estatus = es.id
+            LEFT JOIN postulaciones p ON p.id_vacante = v.id AND p.id_usuario = %s
+            WHERE (es.estatus = 'Activa' OR es.estatus IS NULL)
+              AND p.id IS NULL
+            ORDER BY v.fecha_publicacion DESC
+        """
+        vacantes = conexion.get_datos_parametrizados(query_vacantes, (user_id,))
+    else:
+        query_vacantes = """
+            SELECT v.id, v.titulo, e.nombre as empresa, 
+                   CONCAT(u.ciudad, ', ', u.estado, ', ', u.pais) as ubicacion,
+                   tt.nombre as tipo_contrato, v.descripcion, 
+                   v.salario_minimo, v.salario_maximo, mt.nombre as modalidad,
+                   es.estatus as estado, v.fecha_publicacion
+            FROM vacantes v
+            INNER JOIN empresas e ON v.id_empresa = e.id
+            INNER JOIN ubicaciones u ON v.id_ubicacion = u.id
+            INNER JOIN tipos_trabajo tt ON v.id_tipo_trabajo = tt.id
+            INNER JOIN modalidades_trabajo mt ON v.id_modalidad_trabajo = mt.id
+            LEFT JOIN estado_vacantes ev ON v.id = ev.id_vacante
+            LEFT JOIN estatus es ON ev.id_estatus = es.id
+            WHERE es.estatus = 'Activa' OR es.estatus IS NULL
+            ORDER BY v.fecha_publicacion DESC
+        """
+        vacantes = conexion.get_datos(query_vacantes)
     
     # Formatear las vacantes para el template
     vacantes_formateadas = []
