@@ -101,3 +101,16 @@ class ConexionDB():
             self.errMss = str(ex)
             return f"Error al insertar: {ex}"
     
+    def delete_datos_parametrizados(self, query, params=None):
+        if not self.connection:
+            return "No hay conexión a la base de datos"
+        try:
+            if params:
+                self.cursor.execute(query, params)
+            else:
+                self.cursor.execute(query)
+            self.connection.commit()
+            return 'ok'
+        except Exception as ex:
+            self.errMss = str(ex)
+            return f"Error al eliminar: {ex}"
