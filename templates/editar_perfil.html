@@ -293,6 +293,16 @@
                     </div>
                 </div>
 
+                <div class="form-field">
+                    <label for="telefono">Número de Teléfono</label>
+                    <input type="tel" id="telefono" name="telefono" 
+                        value="{{ usuario.telefono }}" 
+                        placeholder="+52 442 123 4567"
+                        pattern="^\+?[0-9\s\-]{7,15}$"
+                        required>
+                </div>
+
+
                 <!-- Información Profesional -->
                 <div class="form-section">
                     <h3 class="section-title">
