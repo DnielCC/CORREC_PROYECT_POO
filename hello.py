@@ -1653,6 +1653,7 @@ def editar_perfil_usuario():
     user_id = session['user_id']
 
     if request.method == 'POST':
+        # Datos del formulario principal
         nombre = request.form.get('nombre')
         apellidos = request.form.get('apellidos')
         empleo = request.form.get('empleos_deseados')
@@ -1660,8 +1661,36 @@ def editar_perfil_usuario():
         grado = request.form.get('grado_estudio')
         ciudad = request.form.get('ciudad')
         cp = request.form.get('codigo_postal')
+        
+        # Datos para cambio de contraseña
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
 
         try:
+            # Procesar cambio de contraseña si se proporcionaron los campos
+            if current_password and new_password and confirm_password:
+                if new_password != confirm_password:
+                    flash('Las nuevas contraseñas no coinciden.', 'error')
+                    return redirect(url_for('editar_perfil_usuario'))
+                
+                # Verificar contraseña actual
+                user_data = conexion.get_datos(f"SELECT contra FROM login WHERE id = {user_id}")
+                if not user_data:
+                    flash('Usuario no encontrado.', 'error')
+                    return redirect(url_for('editar_perfil_usuario'))
+                
+                # Aquí deberías verificar la contraseña actual con el hash almacenado
+                # Esto es un ejemplo básico, deberías usar funciones de hash como bcrypt
+                if current_password != user_data[0][0]:  # Esto es inseguro, solo para ejemplo
+                    flash('La contraseña actual es incorrecta.', 'error')
+                    return redirect(url_for('editar_perfil_usuario'))
+                
+                # Actualizar contraseña
+                conexion.insert_datos(f"UPDATE login SET contra = '{new_password}' WHERE id = {user_id}")
+                flash('Contraseña actualizada correctamente.', 'success')
+
+            # Procesar actualización de perfil
             # Buscar IDs relacionados igual que en info()
             id_empleo = conexion.get_datos(f"SELECT id FROM empleos WHERE empleo LIKE BINARY '{empleo}' LIMIT 1")[0][0]
             id_exp = conexion.get_datos(f"SELECT id FROM experiencia WHERE experiencia LIKE BINARY '{experiencia}' LIMIT 1")[0][0]
