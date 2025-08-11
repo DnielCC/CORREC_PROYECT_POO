@@ -471,8 +471,31 @@ def admin_dashboard():
     print(f"DEBUG: Tipo de aspirantes: {type(aspirantes)}")
     print(f"DEBUG: Longitud de aspirantes: {len(aspirantes) if aspirantes else 0}")
     
-    print(f"DEBUG: Renderizando template con usuarios={usuarios} y aspirantes={aspirantes}")
-    return render_template('dashboard_admin.html', usuarios=usuarios, aspirantes=aspirantes)
+    # Obtener todas las vacantes con información de usuario y empresa
+    query_vacantes = """
+        SELECT 
+            v.id,
+            v.titulo,
+            l.username as nombre_usuario,
+            e.nombre as nombre_empresa,
+            v.fecha_publicacion,
+            ev.id_estatus,
+            s.estatus
+        FROM vacantes v
+        INNER JOIN login l ON v.id_usuario = l.id
+        INNER JOIN empresas e ON v.id_empresa = e.id
+        LEFT JOIN estado_vacantes ev ON v.id = ev.id_vacante
+        LEFT JOIN estatus s ON ev.id_estatus = s.id
+        ORDER BY v.fecha_publicacion DESC
+    """
+    print(f"DEBUG: Ejecutando query vacantes: {query_vacantes}")
+    vacantes = conexion.get_datos(query_vacantes)
+    print(f"DEBUG: Vacantes encontradas: {vacantes}")
+    print(f"DEBUG: Tipo de vacantes: {type(vacantes)}")
+    print(f"DEBUG: Longitud de vacantes: {len(vacantes) if vacantes else 0}")
+    
+    print(f"DEBUG: Renderizando template con usuarios={usuarios}, aspirantes={aspirantes} y vacantes={vacantes}")
+    return render_template('dashboard_admin.html', usuarios=usuarios, aspirantes=aspirantes, vacantes=vacantes)
 
 @app.route('/admin/agregar_usuario', methods=['POST'])
 def agregar_usuario():
@@ -525,6 +548,105 @@ def editar_usuario(id):
         flash('Solo puedes editar administradores o reclutadores.', 'error')
     return redirect(url_for('admin_dashboard'))
 
+@app.route('/admin/eliminar_vacante/<int:id>', methods=['POST'])
+def admin_eliminar_vacante(id):
+    try:
+        # Verificar que la vacante existe
+        vacante_check = conexion.get_datos(f"SELECT id FROM vacantes WHERE id = {id}")
+        if not vacante_check:
+            flash('La vacante no existe.', 'error')
+            return redirect(url_for('admin_dashboard'))
+        
+        # Eliminar registros relacionados primero
+        conexion.delete_datos(f"DELETE FROM vacantes_habilidades_requeridas WHERE id_vacante = {id}")
+        conexion.delete_datos(f"DELETE FROM vacantes_habilidades_deseadas WHERE id_vacante = {id}")
+        conexion.delete_datos(f"DELETE FROM estado_vacantes WHERE id_vacante = {id}")
+        conexion.delete_datos(f"DELETE FROM postulaciones WHERE id_vacante = {id}")
+        
+        # Eliminar la vacante
+        resultado = conexion.delete_datos(f"DELETE FROM vacantes WHERE id = {id}")
+        
+        if resultado == 'ok':
+            flash('Vacante eliminada correctamente.', 'success')
+        else:
+            flash(f'Error al eliminar la vacante: {resultado}', 'error')
+            
+    except Exception as e:
+        flash(f'Error al eliminar la vacante: {str(e)}', 'error')
+        print(f"ERROR: {str(e)}")
+    
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/editar_vacante/<int:id>', methods=['GET', 'POST'])
+def admin_editar_vacante(id):
+    if request.method == 'GET':
+        # Obtener datos de la vacante para mostrar en el modal
+        try:
+            query_vacante = f"""
+                SELECT 
+                    id, titulo, descripcion, requisitos, beneficios, 
+                    email_contacto, telefono_contacto
+                FROM vacantes 
+                WHERE id = {id}
+            """
+            vacante = conexion.get_datos(query_vacante)
+            
+            if vacante:
+                return jsonify({
+                    'id': vacante[0][0],
+                    'titulo': vacante[0][1],
+                    'descripcion': vacante[0][2],
+                    'requisitos': vacante[0][3],
+                    'beneficios': vacante[0][4] if vacante[0][4] else '',
+                    'email_contacto': vacante[0][5],
+                    'telefono_contacto': vacante[0][6] if vacante[0][6] else ''
+                })
+            else:
+                return jsonify({'error': 'Vacante no encontrada'}), 404
+                
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    
+    elif request.method == 'POST':
+        try:
+            titulo = request.form['titulo']
+            descripcion = request.form['descripcion']
+            requisitos = request.form['requisitos']
+            beneficios = request.form['beneficios']
+            email_contacto = request.form['email_contacto']
+            telefono_contacto = request.form['telefono_contacto']
+            
+            # Verificar que la vacante existe
+            vacante_check = conexion.get_datos(f"SELECT id FROM vacantes WHERE id = {id}")
+            if not vacante_check:
+                flash('La vacante no existe.', 'error')
+                return redirect(url_for('admin_dashboard'))
+            
+            # Actualizar la vacante
+            update_query = f"""
+                UPDATE vacantes SET
+                    titulo = '{titulo}',
+                    descripcion = '{descripcion}',
+                    requisitos = '{requisitos}',
+                    beneficios = '{beneficios}',
+                    email_contacto = '{email_contacto}',
+                    telefono_contacto = '{telefono_contacto}'
+                WHERE id = {id}
+            """
+            
+            resultado = conexion.insert_datos(update_query)
+            
+            if resultado == 'ok':
+                flash('Vacante actualizada correctamente.', 'success')
+            else:
+                flash(f'Error al actualizar la vacante: {resultado}', 'error')
+                
+        except Exception as e:
+            flash(f'Error al actualizar la vacante: {str(e)}', 'error')
+            print(f"ERROR: {str(e)}")
+        
+        return redirect(url_for('admin_dashboard'))
+
 @app.route('/admin/editar_aspirante/<int:id>', methods=['POST'])
 def editar_aspirante(id):
     nombre = request.form['nombre']
@@ -547,6 +669,62 @@ def editar_aspirante(id):
             WHERE id_usuario={id}
         """
         conexion.insert_datos(update_info)
+        
+        # Actualizar empleo deseado si existe
+        if empleo_deseado and empleo_deseado != 'No especificado':
+            # Buscar si ya existe un empleo para este usuario
+            empleo_check = conexion.get_datos(f"SELECT id FROM empleos WHERE empleo = '{empleo_deseado}'")
+            if empleo_check:
+                id_empleo = empleo_check[0][0]
+                # Actualizar el id_empleos en informacion
+                conexion.insert_datos(f"UPDATE informacion SET id_empleos = {id_empleo} WHERE id_usuario = {id}")
+            else:
+                # Crear nuevo empleo si no existe
+                conexion.insert_datos(f"INSERT INTO empleos (empleo) VALUES ('{empleo_deseado}')")
+                id_empleo = conexion.get_datos("SELECT LAST_INSERT_ID()")[0][0]
+                conexion.insert_datos(f"UPDATE informacion SET id_empleos = {id_empleo} WHERE id_usuario = {id}")
+        
+        # Actualizar experiencia si existe
+        if experiencia and experiencia != 'No especificado':
+            # Buscar si ya existe una experiencia para este usuario
+            exp_check = conexion.get_datos(f"SELECT id FROM experiencia WHERE experiencia = '{experiencia}'")
+            if exp_check:
+                id_exp = exp_check[0][0]
+                # Actualizar el id_experiencia en informacion
+                conexion.insert_datos(f"UPDATE informacion SET id_experiencia = {id_exp} WHERE id_usuario = {id}")
+            else:
+                # Crear nueva experiencia si no existe
+                conexion.insert_datos(f"INSERT INTO experiencia (experiencia) VALUES ('{experiencia}')")
+                id_exp = conexion.get_datos("SELECT LAST_INSERT_ID()")[0][0]
+                conexion.insert_datos(f"UPDATE informacion SET id_experiencia = {id_exp} WHERE id_usuario = {id}")
+        
+        # Actualizar grado de estudios si existe
+        if grado_estudios and grado_estudios != 'No especificado':
+            # Buscar si ya existe un grado para este usuario
+            grado_check = conexion.get_datos(f"SELECT id FROM grado_estudios WHERE grado = '{grado_estudios}'")
+            if grado_check:
+                id_grado = grado_check[0][0]
+                # Actualizar el id_grado_estudios en informacion
+                conexion.insert_datos(f"UPDATE informacion SET id_grado_estudios = {id_grado} WHERE id_usuario = {id}")
+            else:
+                # Crear nuevo grado si no existe
+                conexion.insert_datos(f"INSERT INTO grado_estudios (grado) VALUES ('{grado_estudios}')")
+                id_grado = conexion.get_datos("SELECT LAST_INSERT_ID()")[0][0]
+                conexion.insert_datos(f"UPDATE informacion SET id_grado_estudios = {id_grado} WHERE id_usuario = {id}")
+        
+        # Actualizar ciudad si existe
+        if ciudad and ciudad != 'No especificado':
+            # Buscar si ya existe una ciudad para este usuario
+            ciudad_check = conexion.get_datos(f"SELECT id FROM ciudad_referencia WHERE ciudad = '{ciudad}'")
+            if ciudad_check:
+                id_ciudad = ciudad_check[0][0]
+                # Actualizar el id_ciudad en informacion
+                conexion.insert_datos(f"UPDATE informacion SET id_ciudad = {id_ciudad} WHERE id_usuario = {id}")
+            else:
+                # Crear nueva ciudad si no existe
+                conexion.insert_datos(f"INSERT INTO ciudad_referencia (ciudad) VALUES ('{ciudad}')")
+                id_ciudad = conexion.get_datos("SELECT LAST_INSERT_ID()")[0][0]
+                conexion.insert_datos(f"UPDATE informacion SET id_ciudad = {id_ciudad} WHERE id_usuario = {id}")
         
         flash('Aspirante editado correctamente.', 'success')
     except Exception as e:

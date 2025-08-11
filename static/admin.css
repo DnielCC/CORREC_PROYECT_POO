@@ -400,3 +400,103 @@
         .table-button .btn-eliminar:hover {
             background: #dc2626;
         }
+
+        /* Estilos para el modal de vacantes */
+        #editVacanteForm label {
+            display: block;
+            margin-top: 1rem;
+            margin-bottom: 0.3rem;
+            font-weight: 500;
+            color: #2563eb;
+        }
+
+        #editVacanteForm input, #editVacanteForm textarea, #editVacanteForm select {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.7rem;
+            font-size: 1rem;
+            margin-bottom: 0.7rem;
+            background: #f9fafb;
+            box-sizing: border-box;
+        }
+
+        #editVacanteForm input:focus, #editVacanteForm textarea:focus, #editVacanteForm select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        #editVacanteForm textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        #editVacanteForm button {
+            background-color: #3b82f6;
+            color: #fff;
+            border: none;
+            padding: 0.85rem 2rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 1rem;
+            width: 100%;
+        }
+
+        #editVacanteForm button:hover {
+            background-color: #2563eb;
+        }
+
+/* Estilos para el modal de aspirantes */
+#editAspiranteForm label {
+    display: block;
+    margin-top: 1rem;
+    margin-bottom: 0.3rem;
+    font-weight: 500;
+    color: #2563eb;
+}
+
+#editAspiranteForm input, #editAspiranteForm textarea, #editAspiranteForm select {
+    width: 100%;
+    padding: 0.7rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.7rem;
+    font-size: 1rem;
+    margin-bottom: 0.7rem;
+    background: #f9fafb;
+    box-sizing: border-box;
+}
+
+#editAspiranteForm input:focus, #editAspiranteForm textarea:focus, #editAspiranteForm select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+#editAspiranteForm textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
+#editAspiranteForm button {
+    background-color: #3b82f6;
+    color: #fff;
+    border: none;
+    padding: 0.85rem 2rem;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 1rem;
+    width: 100%;
+}
+
+#editAspiranteForm button:hover {
+    background-color: #2563eb;
+}

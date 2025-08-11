@@ -17,6 +17,8 @@
         {% include 'components/sidebar_admin.html' %}
         <main class="main">
             <div class="main-title">Panel de Administración</div>
+            
+            <!-- Tabla de usuarios -->
             <div class="tab-content active" id="usuarios">
                 <!-- Formulario para agregar Admin/Empresa -->
                 <h3>Agregar Usuario (Administrador/Reclutador)</h3>
@@ -63,6 +65,96 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Tabla de aspirantes -->
+            <div class="tab-content" id="aspirantes">
+                <h3>Gestión de Aspirantes</h3>
+                
+                <!-- Tabla de aspirantes -->
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Apellidos</th>
+                            <th>Correo</th>
+                            <th>Empleo Deseado</th>
+                            <th>Experiencia</th>
+                            <th>Grado de Estudios</th>
+                            <th>Ciudad</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in aspirantes %}
+                        <tr>
+                            <td>{{ a[0] }}</td> <!-- ID Usuario -->
+                            <td>{{ a[1] }}</td> <!-- Nombre -->
+                            <td>{{ a[2] }}</td> <!-- Apellidos -->
+                            <td>{{ a[3] }}</td> <!-- Correo -->
+                            <td>{{ a[4] }}</td> <!-- Empleo Deseado -->
+                            <td>{{ a[5] }}</td> <!-- Experiencia -->
+                            <td>{{ a[6] }}</td> <!-- Grado de Estudios -->
+                            <td>{{ a[7] }}</td> <!-- Ciudad -->
+                            <td style="display: flex; gap: 0.5rem;">
+                                <button type="button"
+                                    onclick="openEditAspiranteModal('{{ a[0] }}', '{{ a[1] }}', '{{ a[2] }}', '{{ a[3] }}', '{{ a[4] }}', '{{ a[5] }}', '{{ a[6] }}', '{{ a[7] }}')"
+                                    style="background:#3b82f6;color:#fff;border:none;padding:0.5rem 1rem;border-radius:0.5rem;">
+                                    Ver/Editar
+                                </button>
+                                <form method="POST" action="{{ url_for('eliminar_aspirante', id=a[0]) }}" onsubmit="return confirm('¿Seguro que deseas eliminar este aspirante? Esta acción no se puede deshacer.');">
+                                    <button type="submit" style="background:#ef4444;color:#fff;border:none;padding:0.5rem 1rem;border-radius:0.5rem;">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tabla de vacantes -->
+            <div class="tab-content" id="empleos">
+                <h3>Gestión de Vacantes</h3>
+                
+                <!-- Tabla de vacantes -->
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Título</th>
+                            <th>Usuario</th>
+                            <th>Empresa</th>
+                            <th>Fecha Publicación</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for v in vacantes %}
+                        <tr>
+                            <td>{{ v[0] }}</td> <!-- ID -->
+                            <td>{{ v[1] }}</td> <!-- Título -->
+                            <td>{{ v[2] }}</td> <!-- Usuario -->
+                            <td>{{ v[3] }}</td> <!-- Empresa -->
+                            <td>{{ v[4].strftime('%d/%m/%Y') if v[4] else 'N/A' }}</td> <!-- Fecha -->
+                            <td>{{ v[6] if v[6] else 'Sin estado' }}</td> <!-- Estado -->
+                            <td style="display: flex; gap: 0.5rem;">
+                                <button type="button"
+                                    onclick="openEditVacanteModal('{{ v[0] }}', '{{ v[1] }}', '{{ v[2] }}', '{{ v[3] }}')"
+                                    style="background:#3b82f6;color:#fff;border:none;padding:0.5rem 1rem;border-radius:0.5rem;">
+                                    Ver/Editar
+                                </button>
+                                <form method="POST" action="{{ url_for('admin_eliminar_vacante', id=v[0]) }}" onsubmit="return confirm('¿Seguro que deseas eliminar esta vacante? Esta acción no se puede deshacer.');">
+                                    <button type="submit" style="background:#ef4444;color:#fff;border:none;padding:0.5rem 1rem;border-radius:0.5rem;">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
     <!-- Modal para editar usuario -->
             <div id="editUserModal" class="modal">
             <div class="modal-content">
@@ -85,6 +177,56 @@
                 </form>
             </div>
         </div>
+
+    <!-- Modal para editar vacante -->
+    <div id="editVacanteModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditVacanteModal()">&times;</span>
+            <h2>Editar Vacante</h2>
+            <form id="editVacanteForm" method="POST">
+                <input type="hidden" name="id" id="edit-vacante-id">
+                <label for="edit-titulo">Título:</label>
+                <input type="text" name="titulo" id="edit-titulo" required>
+                <label for="edit-descripcion">Descripción:</label>
+                <textarea name="descripcion" id="edit-descripcion" required rows="4"></textarea>
+                <label for="edit-requisitos">Requisitos:</label>
+                <textarea name="requisitos" id="edit-requisitos" required rows="4"></textarea>
+                <label for="edit-beneficios">Beneficios:</label>
+                <textarea name="beneficios" id="edit-beneficios" rows="3"></textarea>
+                <label for="edit-email">Email de contacto:</label>
+                <input type="email" name="email_contacto" id="edit-email" required>
+                <label for="edit-telefono">Teléfono de contacto:</label>
+                <input type="text" name="telefono_contacto" id="edit-telefono">
+                <button type="submit">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para editar aspirante -->
+    <div id="editAspiranteModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditAspiranteModal()">&times;</span>
+            <h2>Editar Aspirante</h2>
+            <form id="editAspiranteForm" method="POST">
+                <input type="hidden" name="id" id="edit-aspirante-id">
+                <label for="edit-nombre">Nombre:</label>
+                <input type="text" name="nombre" id="edit-nombre" required>
+                <label for="edit-apellidos">Apellidos:</label>
+                <input type="text" name="apellidos" id="edit-apellidos" required>
+                <label for="edit-correo">Correo:</label>
+                <input type="email" name="correo" id="edit-correo" required>
+                <label for="edit-empleo">Empleo Deseado:</label>
+                <input type="text" name="empleo_deseado" id="edit-empleo">
+                <label for="edit-experiencia">Experiencia:</label>
+                <input type="text" name="experiencia" id="edit-experiencia">
+                <label for="edit-grado">Grado de Estudios:</label>
+                <input type="text" name="grado_estudios" id="edit-grado">
+                <label for="edit-ciudad">Ciudad:</label>
+                <input type="text" name="ciudad" id="edit-ciudad">
+                <button type="submit">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
 
 
     <script>
@@ -119,10 +261,71 @@
         function closeEditModal() {
             document.getElementById('editUserModal').style.display = 'none';
         }
+
+        // Edit Vacante Modal
+        function openEditVacanteModal(id, titulo, usuario, empresa) {
+            // Obtener datos completos de la vacante via AJAX
+            fetch(`/admin/editar_vacante/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error al cargar la vacante: ' + data.error);
+                        return;
+                    }
+                    
+                    // Llenar el formulario con los datos
+                    document.getElementById('edit-vacante-id').value = data.id;
+                    document.getElementById('edit-titulo').value = data.titulo;
+                    document.getElementById('edit-descripcion').value = data.descripcion;
+                    document.getElementById('edit-requisitos').value = data.requisitos;
+                    document.getElementById('edit-beneficios').value = data.beneficios;
+                    document.getElementById('edit-email').value = data.email_contacto;
+                    document.getElementById('edit-telefono').value = data.telefono_contacto;
+                    
+                    // Mostrar el modal
+                    document.getElementById('editVacanteModal').style.display = 'block';
+                    document.getElementById('editVacanteForm').action = '/admin/editar_vacante/' + id;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cargar los datos de la vacante');
+                });
+        }
+        function closeEditVacanteModal() {
+            document.getElementById('editVacanteModal').style.display = 'none';
+        }
+
+        // Edit Aspirante Modal
+        function openEditAspiranteModal(id, nombre, apellidos, correo, empleo_deseado, experiencia, grado_estudios, ciudad) {
+            document.getElementById('edit-aspirante-id').value = id;
+            document.getElementById('edit-nombre').value = nombre;
+            document.getElementById('edit-apellidos').value = apellidos;
+            document.getElementById('edit-correo').value = correo;
+            document.getElementById('edit-empleo').value = empleo_deseado;
+            document.getElementById('edit-experiencia').value = experiencia;
+            document.getElementById('edit-grado').value = grado_estudios;
+            document.getElementById('edit-ciudad').value = ciudad;
+            document.getElementById('editAspiranteModal').style.display = 'block';
+            document.getElementById('editAspiranteForm').action = '/admin/editar_aspirante/' + id;
+        }
+        function closeEditAspiranteModal() {
+            document.getElementById('editAspiranteModal').style.display = 'none';
+        }
+
+        // Close modals when clicking outside
         window.onclick = function(event) {
-            var modal = document.getElementById('editUserModal');
-            if (event.target == modal) {
-                modal.style.display = "none";
+            var userModal = document.getElementById('editUserModal');
+            var vacanteModal = document.getElementById('editVacanteModal');
+            var aspiranteModal = document.getElementById('editAspiranteModal');
+            
+            if (event.target == userModal) {
+                userModal.style.display = "none";
+            }
+            if (event.target == vacanteModal) {
+                vacanteModal.style.display = "none";
+            }
+            if (event.target == aspiranteModal) {
+                aspiranteModal.style.display = "none";
             }
         }
     </script>
