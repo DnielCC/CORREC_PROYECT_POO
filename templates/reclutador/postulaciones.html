@@ -5,6 +5,13 @@
 {% block page_title %}Postulaciones Recibidas{% endblock %}
 
 {% block content %}
+<!-- Sistema de notificaciones -->
+<div id="notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: none;">
+    <div id="notification" class="notification" style="padding: 15px 20px; border-radius: 8px; color: white; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-width: 400px;">
+        <span id="notification-message"></span>
+    </div>
+</div>
+
 <!-- Header Stats -->
 <div class="stats-grid" style="margin-bottom: 2rem;">
     <div class="stat-card">
@@ -231,33 +238,125 @@
 .table tbody tr:hover {
     background-color: #F9FAFB;
 }
+
+/* Estilos para las notificaciones */
+.notification {
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Mejorar la visualización de estados */
+.badge-success {
+    background: linear-gradient(135deg, #10B981, #34D399);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    font-weight: 600;
+}
+
+.badge-danger {
+    background: linear-gradient(135deg, #EF4444, #F87171);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    font-weight: 600;
+}
+
+.badge-warning {
+    background: linear-gradient(135deg, #F59E0B, #FBBF24);
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    font-weight: 600;
+}
+
+.badge-secondary {
+    background: linear-gradient(135deg, #6B7280, #9CA3AF);
+    box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+    font-weight: 600;
+}
 </style>
 
 <script>
 function cambiarEstadoPostulacion(idPostulacion, nuevoEstado) {
     if (confirm(`¿Estás seguro de que quieres cambiar el estado a "${nuevoEstado}"?`)) {
+        // Mapear el estado a los IDs de la base de datos
+        let nuevoEstadoId;
+        if (nuevoEstado === 'Aceptado') {
+            nuevoEstadoId = 5; // ID para Aceptado
+        } else if (nuevoEstado === 'Rechazado') {
+            nuevoEstadoId = 6; // ID para Rechazado
+        } else {
+            nuevoEstadoId = 4; // ID para En Revisión
+        }
+        
         fetch(`/reclutador/postulaciones/${idPostulacion}/cambiar-estado`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                estado: nuevoEstado
+                nuevo_estado: nuevoEstadoId
             })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload();
+                // Mostrar notificación de éxito
+                showNotification(data.message, 'success');
+                // Recargar la página después de un breve delay
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
             } else {
-                alert('Error al cambiar el estado: ' + data.message);
+                showNotification('Error al cambiar el estado: ' + data.message, 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error al cambiar el estado');
+            showNotification('Error al cambiar el estado', 'error');
         });
     }
+}
+
+// Función para mostrar notificaciones
+function showNotification(message, type) {
+    // Crear elemento de notificación
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        color: white;
+        font-weight: 500;
+        z-index: 1000;
+        max-width: 300px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    `;
+    
+    if (type === 'success') {
+        notification.style.backgroundColor = '#10B981';
+    } else if (type === 'error') {
+        notification.style.backgroundColor = '#EF4444';
+    } else {
+        notification.style.backgroundColor = '#6B7280';
+    }
+    
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    // Remover notificación después de 3 segundos
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 3000);
 }
 
 function filtrarPostulaciones() {

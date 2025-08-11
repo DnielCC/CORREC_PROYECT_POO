@@ -39,7 +39,13 @@
         <div class="postulaciones-container">
             {% if postulaciones %}
                 {% for postulacion in postulaciones %}
-                <div class="postulacion-card" data-status="{{ postulacion.estado }}">
+                <div class="postulacion-card {% if postulacion.estado == 'aceptada' %}postulacion-aceptada{% endif %}" data-status="{{ postulacion.estado }}">
+                    {% if postulacion.estado == 'aceptada' %}
+                    <div class="aceptada-banner">
+                        <span class="aceptada-icon">🎉</span>
+                        <span class="aceptada-text">¡Postulación Aceptada!</span>
+                    </div>
+                    {% endif %}
                     <div class="postulacion-header">
                         <div class="empresa-info">
                             
@@ -55,11 +61,11 @@
                             {% elif postulacion.estado == 'revisando' %}
                                 En Revisión
                             {% elif postulacion.estado == 'aceptada' %}
-                                Aceptada
+                                ✅ Aceptada
                             {% elif postulacion.estado == 'rechazada' %}
-                                Rechazada
+                                ❌ Rechazada
                             {% elif postulacion.estado == 'cancelada' %}
-                                Cancelada
+                                🚫 Cancelada
                             {% else %}
                                 {{ postulacion.estado|title }}
                             {% endif %}

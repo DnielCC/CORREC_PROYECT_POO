@@ -8,22 +8,25 @@
 <!-- Header with Actions -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
     <div>
-        <h2 style="font-size: 1.5rem; font-weight: 600; color: #1F2937; margin-bottom: 0.5rem;">Carlos Mendoza</h2>
-        <p style="color: #6B7280; margin: 0;">Desarrollador Frontend Senior • Postulación recibida hace 2 horas</p>
+        <h2 style="font-size: 1.5rem; font-weight: 600; color: #1F2937; margin-bottom: 0.5rem;">{{ candidato.nombre }} {{ candidato.apellidos }}</h2>
+        <p style="color: #6B7280; margin: 0;">
+            {% if candidato.empleo_deseado %}{{ candidato.empleo_deseado }}{% else %}Sin empleo especificado{% endif %}
+            {% if candidato.experiencia %} • {{ candidato.experiencia }}{% endif %}
+        </p>
     </div>
     <div style="display: flex; gap: 1rem;">
         <a href="{{ url_for('reclutador_postulaciones') }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i>
             Volver a Postulaciones
         </a>
-        <button class="btn btn-primary" onclick="acceptCandidate()">
-            <i class="fas fa-check"></i>
-            Aceptar Candidato
-        </button>
-        <button class="btn btn-danger" onclick="rejectCandidate()">
-            <i class="fas fa-times"></i>
-            Rechazar
-        </button>
+                        <button class="btn btn-primary" onclick="acceptCandidate()" id="btn-aceptar">
+                    <i class="fas fa-check"></i>
+                    Aceptar Candidato
+                </button>
+                <button class="btn btn-danger" onclick="rejectCandidate()" id="btn-rechazar">
+                    <i class="fas fa-times"></i>
+                    Rechazar
+                </button>
     </div>
 </div>
 
@@ -32,7 +35,7 @@
     <!-- Main Profile Card -->
     <div class="card" style="grid-column: span 2;">
         <div class="card-header">
-            <h3 class="card-title">Información Personal</h3>
+            <h3 class="card-title">Información Personal y Profesional</h3>
             <span class="badge badge-warning">En Revisión</span>
         </div>
         
@@ -42,12 +45,20 @@
                     <i class="fas fa-user"></i>
                 </div>
                 <div style="flex: 1;">
-                    <h3 style="font-size: 1.5rem; font-weight: 700; color: #1F2937; margin-bottom: 0.5rem;">Carlos Mendoza</h3>
-                    <p style="color: #6B7280; margin-bottom: 0.5rem;">Desarrollador Frontend Senior</p>
+                    <h3 style="font-size: 1.5rem; font-weight: 700; color: #1F2937; margin-bottom: 0.5rem;">{{ candidato.nombre }} {{ candidato.apellidos }}</h3>
+                    <p style="color: #6B7280; margin-bottom: 0.5rem;">
+                        {% if candidato.empleo_deseado %}{{ candidato.empleo_deseado }}{% else %}Sin empleo especificado{% endif %}
+                    </p>
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <span class="badge badge-info">5 años experiencia</span>
-                        <span class="badge badge-info">Querétaro, México</span>
-                        <span class="badge badge-info">Disponible inmediatamente</span>
+                        {% if candidato.experiencia %}
+                        <span class="badge badge-info">{{ candidato.experiencia }}</span>
+                        {% endif %}
+                        {% if candidato.ciudad %}
+                        <span class="badge badge-info">{{ candidato.ciudad }}{% if candidato.codigo_postal %}, {{ candidato.codigo_postal }}{% endif %}</span>
+                        {% endif %}
+                        {% if candidato.grado_estudios %}
+                        <span class="badge badge-info">{{ candidato.grado_estudios }}</span>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -61,19 +72,19 @@
                     <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                         <div>
                             <div style="font-weight: 600; color: #374151;">Email</div>
-                            <div style="color: #6B7280;">carlos.mendoza@email.com</div>
+                            <div style="color: #6B7280;">{{ candidato.email }}</div>
                         </div>
                         <div>
                             <div style="font-weight: 600; color: #374151;">Teléfono</div>
-                            <div style="color: #6B7280;">+52 55 1234 5678</div>
+                            <div style="color: #6B7280;">No disponible</div>
                         </div>
                         <div>
                             <div style="font-weight: 600; color: #374151;">LinkedIn</div>
-                            <div style="color: #6B7280;">linkedin.com/in/carlos-mendoza</div>
+                            <div style="color: #6B7280;">No disponible</div>
                         </div>
                         <div>
                             <div style="font-weight: 600; color: #374151;">Portfolio</div>
-                            <div style="color: #6B7280;">carlosmendoza.dev</div>
+                            <div style="color: #6B7280;">No disponible</div>
                         </div>
                     </div>
                 </div>
@@ -81,18 +92,27 @@
                 <div>
                     <h4 style="font-size: 1.125rem; font-weight: 600; color: #1F2937; margin-bottom: 1rem;">
                         <i class="fas fa-graduation-cap" style="color: #10B981; margin-right: 0.5rem;"></i>
-                        Educación
+                        Educación y Experiencia
                     </h4>
                     <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        {% if candidato.grado_estudios %}
                         <div>
-                            <div style="font-weight: 600; color: #374151;">Ingeniería en Sistemas Computacionales</div>
-                            <div style="color: #6B7280;">Universidad Tecnológica de Querétaro</div>
-                            <div style="color: #6B7280; font-size: 0.875rem;">2018 - 2022</div>
+                            <div style="font-weight: 600; color: #374151;">Grado de Estudios</div>
+                            <div style="color: #6B7280;">{{ candidato.grado_estudios }}</div>
                         </div>
+                        {% endif %}
+                        {% if candidato.experiencia %}
                         <div>
-                            <div style="font-weight: 600; color: #374151;">Certificaciones</div>
-                            <div style="color: #6B7280;">AWS Certified Developer, React Certification</div>
+                            <div style="font-weight: 600; color: #374151;">Experiencia Laboral</div>
+                            <div style="color: #6B7280;">{{ candidato.experiencia }}</div>
                         </div>
+                        {% endif %}
+                        {% if candidato.empleo_deseado %}
+                        <div>
+                            <div style="font-weight: 600; color: #374151;">Empleo Deseado</div>
+                            <div style="color: #6B7280;">{{ candidato.empleo_deseado }}</div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -158,104 +178,115 @@
     </div>
 </div>
 
-<!-- Skills and Experience -->
+<!-- Location and Additional Info -->
 <div class="grid grid-cols-2" style="gap: 2rem; margin-top: 2rem;">
-    <!-- Skills Card -->
+    <!-- Location Card -->
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Habilidades Técnicas</h3>
+            <h3 class="card-title">
+                <i class="fas fa-map-marker-alt" style="color: #EF4444; margin-right: 0.5rem;"></i>
+                Información de Ubicación
+            </h3>
         </div>
         
         <div class="card-body">
             <div style="display: flex; flex-direction: column; gap: 1rem;">
+                {% if candidato.ciudad %}
                 <div>
-                    <div style="font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Frontend</div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                        <span class="badge badge-info">JavaScript</span>
-                        <span class="badge badge-info">React</span>
-                        <span class="badge badge-info">Vue.js</span>
-                        <span class="badge badge-info">TypeScript</span>
-                        <span class="badge badge-info">HTML5</span>
-                        <span class="badge badge-info">CSS3</span>
-                        <span class="badge badge-info">Sass</span>
-                    </div>
+                    <div style="font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Ciudad de Residencia</div>
+                    <div style="color: #6B7280;">{{ candidato.ciudad }}</div>
                 </div>
-                
+                {% endif %}
+                {% if candidato.codigo_postal %}
                 <div>
-                    <div style="font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Backend</div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                        <span class="badge badge-info">Node.js</span>
-                        <span class="badge badge-info">Express</span>
-                        <span class="badge badge-info">Python</span>
-                        <span class="badge badge-info">Django</span>
-                    </div>
+                    <div style="font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Código Postal</div>
+                    <div style="color: #6B7280;">{{ candidato.codigo_postal }}</div>
                 </div>
-                
-                <div>
-                    <div style="font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Herramientas</div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                        <span class="badge badge-info">Git</span>
-                        <span class="badge badge-info">Docker</span>
-                        <span class="badge badge-info">AWS</span>
-                        <span class="badge badge-info">Figma</span>
-                        <span class="badge badge-info">Jira</span>
-                    </div>
+                {% endif %}
+                {% if not candidato.ciudad and not candidato.codigo_postal %}
+                <div style="text-align: center; color: #6B7280; padding: 2rem;">
+                    <i class="fas fa-map-marker-alt" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                    <p>No hay información de ubicación disponible</p>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
     
-    <!-- Experience Card -->
+    <!-- Professional Summary Card -->
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Experiencia Laboral</h3>
+            <h3 class="card-title">
+                <i class="fas fa-briefcase" style="color: #10B981; margin-right: 0.5rem;"></i>
+                Resumen Profesional
+            </h3>
         </div>
         
         <div class="card-body">
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                {% if candidato.empleo_deseado %}
                 <div>
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                        <div>
-                            <div style="font-weight: 600; color: #1F2937;">Desarrollador Frontend Senior</div>
-                            <div style="color: #6B7280;">TechCorp Solutions</div>
-                        </div>
-                        <span style="font-size: 0.875rem; color: #6B7280;">2022 - Presente</span>
-                    </div>
-                    <p style="color: #6B7280; font-size: 0.875rem; line-height: 1.5;">
-                        Lideré el desarrollo de aplicaciones web responsivas utilizando React y TypeScript. 
-                        Implementé mejores prácticas de desarrollo y mentoreé a desarrolladores junior.
-                    </p>
+                    <div style="font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Posición Deseada</div>
+                    <div style="color: #6B7280;">{{ candidato.empleo_deseado }}</div>
                 </div>
-                
+                {% endif %}
+                {% if candidato.experiencia %}
                 <div>
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                        <div>
-                            <div style="font-weight: 600; color: #1F2937;">Desarrollador Frontend</div>
-                            <div style="color: #6B7280;">Digital Innovations</div>
-                        </div>
-                        <span style="font-size: 0.875rem; color: #6B7280;">2020 - 2022</span>
-                    </div>
-                    <p style="color: #6B7280; font-size: 0.875rem; line-height: 1.5;">
-                        Desarrollé interfaces de usuario interactivas y optimicé el rendimiento de aplicaciones web.
-                    </p>
+                    <div style="font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Nivel de Experiencia</div>
+                    <div style="color: #6B7280;">{{ candidato.experiencia }}</div>
                 </div>
-                
+                {% endif %}
+                {% if candidato.grado_estudios %}
                 <div>
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                        <div>
-                            <div style="font-weight: 600; color: #1F2937;">Desarrollador Junior</div>
-                            <div style="color: #6B7280;">StartupTech</div>
-                        </div>
-                        <span style="font-size: 0.875rem; color: #6B7280;">2019 - 2020</span>
-                    </div>
-                    <p style="color: #6B7280; font-size: 0.875rem; line-height: 1.5;">
-                        Participé en el desarrollo de aplicaciones web utilizando JavaScript y Vue.js.
-                    </p>
+                    <div style="font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Formación Académica</div>
+                    <div style="color: #6B7280;">{{ candidato.grado_estudios }}</div>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<!-- Recent Applications -->
+{% if candidato.postulaciones %}
+<div style="margin-top: 2rem;">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-file-alt" style="color: #8B5CF6; margin-right: 0.5rem;"></i>
+                Postulaciones Recientes
+            </h3>
+        </div>
+        
+        <div class="card-body">
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #E5E7EB;">
+                            <th style="text-align: left; padding: 0.75rem; font-weight: 600; color: #374151;">Vacante</th>
+                            <th style="text-align: left; padding: 0.75rem; font-weight: 600; color: #374151;">Fecha de Postulación</th>
+                            <th style="text-align: left; padding: 0.75rem; font-weight: 600; color: #374151;">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in candidato.postulaciones %}
+                        <tr style="border-bottom: 1px solid #F3F4F6;">
+                            <td style="padding: 0.75rem; color: #1F2937;">{{ p[0] }}</td>
+                            <td style="padding: 0.75rem; color: #6B7280;">{{ p[1].strftime('%d/%m/%Y %H:%M') if p[1] else 'N/A' }}</td>
+                            <td style="padding: 0.75rem;">
+                                <span class="badge {% if p[2] == 'Aceptado' %}badge-success{% elif p[2] == 'Rechazado' %}badge-danger{% elif p[2] == 'En Revisión' %}badge-warning{% else %}badge-secondary{% endif %}">
+                                    {{ p[2] }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Documents and Actions -->
 <div class="grid grid-cols-2" style="gap: 2rem; margin-top: 2rem;">
@@ -267,43 +298,9 @@
         
         <div class="card-body">
             <div style="display: flex; flex-direction: column; gap: 1rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #F9FAFB; border-radius: 8px;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <i class="fas fa-file-pdf" style="color: #EF4444; font-size: 1.25rem;"></i>
-                        <div>
-                            <div style="font-weight: 600; color: #1F2937;">CV_Carlos_Mendoza.pdf</div>
-                            <div style="font-size: 0.75rem; color: #6B7280;">2.3 MB • Actualizado hace 1 mes</div>
-                        </div>
-                    </div>
-                    <a href="#" class="btn btn-secondary btn-sm" data-tooltip="Descargar CV">
-                        <i class="fas fa-download"></i>
-                    </a>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #F9FAFB; border-radius: 8px;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <i class="fas fa-file-pdf" style="color: #EF4444; font-size: 1.25rem;"></i>
-                        <div>
-                            <div style="font-weight: 600; color: #1F2937;">Carta_Presentacion.pdf</div>
-                            <div style="font-size: 0.75rem; color: #6B7280;">1.1 MB • Actualizado hace 2 semanas</div>
-                        </div>
-                    </div>
-                    <a href="#" class="btn btn-secondary btn-sm" data-tooltip="Descargar Carta">
-                        <i class="fas fa-download"></i>
-                    </a>
-                </div>
-                
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #F9FAFB; border-radius: 8px;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <i class="fas fa-file-pdf" style="color: #EF4444; font-size: 1.25rem;"></i>
-                        <div>
-                            <div style="font-weight: 600; color: #1F2937;">Portfolio.pdf</div>
-                            <div style="font-size: 0.75rem; color: #6B7280;">5.7 MB • Actualizado hace 3 días</div>
-                        </div>
-                    </div>
-                    <a href="#" class="btn btn-secondary btn-sm" data-tooltip="Descargar Portfolio">
-                        <i class="fas fa-download"></i>
-                    </a>
+                <div style="text-align: center; color: #6B7280; padding: 2rem;">
+                    <i class="fas fa-file-alt" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                    <p>No hay documentos disponibles en este momento</p>
                 </div>
             </div>
         </div>
@@ -360,26 +357,86 @@
 
 {% block extra_js %}
 <script>
+// Variable global para almacenar el ID de la postulación actual
+let currentPostulationId = null;
+
 function acceptCandidate() {
-    confirmAction('¿Estás seguro de aceptar a este candidato?', 'confirmAccept');
+    if (!currentPostulationId) {
+        showNotification('Error: No se pudo identificar la postulación', 'error');
+        return;
+    }
+    confirmAction('¿Estás seguro de aceptar a este candidato?', () => {
+        cambiarEstadoPostulacion(currentPostulationId, 5); // 5 = Aceptado
+    });
 }
 
 function rejectCandidate() {
-    confirmAction('¿Estás seguro de rechazar a este candidato?', 'confirmReject');
+    if (!currentPostulationId) {
+        showNotification('Error: No se pudo identificar la postulación', 'error');
+        return;
+    }
+    confirmAction('¿Estás seguro de rechazar a este candidato?', () => {
+        cambiarEstadoPostulacion(currentPostulationId, 6); // 6 = Rechazado
+    });
 }
 
-function confirmAccept() {
-    showNotification('Candidato aceptado exitosamente', 'success');
-    // Update status badge
-    document.querySelector('.badge').className = 'badge badge-success';
-    document.querySelector('.badge').textContent = 'Aceptado';
-}
-
-function confirmReject() {
-    showNotification('Candidato rechazado', 'error');
-    // Update status badge
-    document.querySelector('.badge').className = 'badge badge-danger';
-    document.querySelector('.badge').textContent = 'Rechazado';
+function cambiarEstadoPostulacion(postulacionId, nuevoEstado) {
+    // Realizar la petición AJAX
+    fetch(`/reclutador/postulaciones/${postulacionId}/cambiar-estado`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            nuevo_estado: nuevoEstado
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            
+            // Actualizar el badge de estado
+            const badge = document.querySelector('.badge');
+            if (badge) {
+                if (nuevoEstado === 5) { // Aceptado
+                    badge.className = 'badge badge-success';
+                    badge.textContent = 'Aceptado';
+                } else if (nuevoEstado === 6) { // Rechazado
+                    badge.className = 'badge badge-danger';
+                    badge.textContent = 'Rechazado';
+                }
+            }
+            
+            // Actualizar el selector de estado
+            const selectEstado = document.querySelector('select[onchange="updateStatus(this.value)"]');
+            if (selectEstado) {
+                if (nuevoEstado === 5) {
+                    selectEstado.value = 'accepted';
+                } else if (nuevoEstado === 6) {
+                    selectEstado.value = 'rejected';
+                }
+            }
+            
+            // Deshabilitar botones de acción
+            const btnAceptar = document.getElementById('btn-aceptar');
+            const btnRechazar = document.getElementById('btn-rechazar');
+            if (btnAceptar) btnAceptar.disabled = true;
+            if (btnRechazar) btnRechazar.disabled = true;
+            
+            // Recargar la página después de 2 segundos para mostrar los cambios
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+            
+        } else {
+            showNotification(`Error: ${data.message}`, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error al cambiar el estado', 'error');
+    });
 }
 
 function scheduleInterview() {

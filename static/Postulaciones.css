@@ -546,4 +546,88 @@ body {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Estilos para postulaciones aceptadas */
+.postulacion-aceptada {
+    border: 2px solid #10B981;
+    background: linear-gradient(135deg, #FFFFFF 0%, #F0FDF4 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.postulacion-aceptada::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #10B981, #34D399, #6EE7B7);
+    animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.aceptada-banner {
+    background: linear-gradient(135deg, #10B981, #34D399);
+    color: white;
+    padding: 15px 20px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.aceptada-icon {
+    font-size: 1.3rem;
+    animation: bounce 2s infinite;
+}
+
+.aceptada-text {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Mejorar el estado aceptada */
+.status-badge.aceptada {
+    background: linear-gradient(135deg, #10B981, #34D399);
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    transform: scale(1.05);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 25px rgba(16, 185, 129, 0.5);
+    }
+    100% {
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
 } 

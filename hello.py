@@ -254,11 +254,13 @@ def mis_postulaciones():
     
     # Obtener las postulaciones del usuario con información completa
     query_postulaciones = """
-        SELECT p.id, p.fecha_postulacion, es.estatus as estado, p.fecha_postulacion as fecha_actualizacion,
+        SELECT p.id, p.fecha_postulacion, es.estatus as estado, 
+               p.fecha_postulacion as fecha_actualizacion,
                v.titulo, e.nombre as empresa, 
                CONCAT(u.ciudad, ', ', u.estado, ', ', u.pais) as ubicacion,
                v.salario_minimo, v.salario_maximo, 
-               mt.nombre as modalidad, tt.nombre as tipo_contrato
+               mt.nombre as modalidad, tt.nombre as tipo_contrato,
+               p.id_estatus
         FROM postulaciones p
         INNER JOIN vacantes v ON p.id_vacante = v.id
         INNER JOIN empresas e ON v.id_empresa = e.id
@@ -275,10 +277,22 @@ def mis_postulaciones():
     # Formatear las postulaciones para el template
     postulaciones_formateadas = []
     for postulacion in postulaciones:
+        # Mapear el estado a un formato más amigable para el usuario
+        estado_mostrar = postulacion[2]
+        if postulacion[2] == 'En Revisión':
+            estado_mostrar = 'revisando'
+        elif postulacion[2] == 'Aceptado':
+            estado_mostrar = 'aceptada'
+        elif postulacion[2] == 'Rechazado':
+            estado_mostrar = 'rechazada'
+        elif postulacion[2] == 'Pendiente':
+            estado_mostrar = 'pendiente'
+        
         postulaciones_formateadas.append({
             'id': postulacion[0],
             'fecha_postulacion': postulacion[1],
-            'estado': postulacion[2],
+            'estado': estado_mostrar,
+            'estado_original': postulacion[2],
             'fecha_actualizacion': postulacion[3],
             'titulo': postulacion[4],
             'empresa': postulacion[5],
@@ -286,7 +300,8 @@ def mis_postulaciones():
             'salario_min': postulacion[7],
             'salario_max': postulacion[8],
             'modalidad': postulacion[9],
-            'tipo_contrato': postulacion[10]
+            'tipo_contrato': postulacion[10],
+            'id_estatus': postulacion[11]
         })
     
     return render_template('mis_postulaciones.html', postulaciones=postulaciones_formateadas)
@@ -530,8 +545,99 @@ def eliminar_aspirante(id):
 # --------- RECLUTADOR DASHBOARD ---------
 @app.route('/reclutador/dashboard')
 def reclutador_dashboard():
+    if 'user_id' not in session:
+        flash('Debes iniciar sesión para continuar.', 'error')
+        return redirect(url_for('user_login'))
     
-    return render_template('reclutador/vacantes.html')
+    user_id = session['user_id']
+    
+    try:
+        # Obtener estadísticas generales
+        # Total de vacantes del reclutador
+        query_vacantes = '''
+            SELECT COUNT(*) as total_vacantes,
+                   SUM(CASE WHEN ev.id_estatus = 1 THEN 1 ELSE 0 END) as vacantes_activas
+            FROM vacantes v
+            LEFT JOIN estado_vacantes ev ON v.id = ev.id_vacante
+            WHERE v.id_usuario = %s
+        '''
+        stats_vacantes = conexion.get_datos_parametrizados(query_vacantes, (user_id,))
+        
+        # Total de postulaciones recibidas
+        query_postulaciones = '''
+            SELECT COUNT(*) as total_postulaciones,
+                   SUM(CASE WHEN p.id_estatus = 4 THEN 1 ELSE 0 END) as en_revision,
+                   SUM(CASE WHEN p.id_estatus = 5 THEN 1 ELSE 0 END) as aceptadas,
+                   SUM(CASE WHEN p.id_estatus = 6 THEN 1 ELSE 0 END) as rechazadas
+            FROM postulaciones p
+            INNER JOIN vacantes v ON p.id_vacante = v.id
+            WHERE v.id_usuario = %s
+        '''
+        stats_postulaciones = conexion.get_datos_parametrizados(query_postulaciones, (user_id,))
+        
+        # Postulaciones recientes (últimas 5)
+        query_recientes = '''
+            SELECT 
+                i.nombre,
+                i.apellidos,
+                l.correo,
+                p.id_usuario,
+                v.titulo,
+                p.fecha_postulacion,
+                es.estatus,
+                p.id
+            FROM postulaciones p
+            INNER JOIN vacantes v ON p.id_vacante = v.id
+            INNER JOIN login l ON p.id_usuario = l.id
+            INNER JOIN informacion i ON l.id = i.id_usuario
+            INNER JOIN estatus es ON p.id_estatus = es.id
+            WHERE v.id_usuario = %s
+            ORDER BY p.fecha_postulacion DESC
+            LIMIT 5
+        '''
+        postulaciones_recientes = conexion.get_datos_parametrizados(query_recientes, (user_id,))
+        
+        # Postulaciones de hoy
+        query_hoy = '''
+            SELECT COUNT(*) as postulaciones_hoy
+            FROM postulaciones p
+            INNER JOIN vacantes v ON p.id_vacante = v.id
+            WHERE v.id_usuario = %s 
+            AND DATE(p.fecha_postulacion) = CURDATE()
+        '''
+        postulaciones_hoy = conexion.get_datos_parametrizados(query_hoy, (user_id,))
+        
+        # Preparar datos para el template
+        total_vacantes = stats_vacantes[0][0] if stats_vacantes else 0
+        vacantes_activas = stats_vacantes[0][1] if stats_vacantes else 0
+        total_postulaciones = stats_postulaciones[0][0] if stats_postulaciones else 0
+        en_revision = stats_postulaciones[0][1] if stats_postulaciones else 0
+        aceptadas = stats_postulaciones[0][2] if stats_postulaciones else 0
+        rechazadas = stats_postulaciones[0][3] if stats_postulaciones else 0
+        nuevas_hoy = postulaciones_hoy[0][0] if postulaciones_hoy else 0
+        
+        return render_template('reclutador/dashboard.html',
+                             total_vacantes=total_vacantes,
+                             vacantes_activas=vacantes_activas,
+                             total_postulaciones=total_postulaciones,
+                             en_revision=en_revision,
+                             aceptadas=aceptadas,
+                             rechazadas=rechazadas,
+                             nuevas_hoy=nuevas_hoy,
+                             postulaciones_recientes=postulaciones_recientes)
+                             
+    except Exception as e:
+        print(f"Error en dashboard reclutador: {str(e)}")
+        flash('Error al cargar el dashboard', 'error')
+        return render_template('reclutador/dashboard.html',
+                             total_vacantes=0,
+                             vacantes_activas=0,
+                             total_postulaciones=0,
+                             en_revision=0,
+                             aceptadas=0,
+                             rechazadas=0,
+                             nuevas_hoy=0,
+                             postulaciones_recientes=[])
 
 @app.route('/reclutador/vacantes')
 def reclutador_vacantes():
@@ -665,44 +771,72 @@ def cambiar_estado_postulacion(id):
     
     try:
         data = request.get_json()
-        nuevo_estado = data.get('estado')
+        nuevo_estado = data.get('nuevo_estado')
         
         if not nuevo_estado:
-            return jsonify({'success': False, 'message': 'Estado no especificado'}), 400
-        
-        # Mapear el estado a ID
-        estado_map = {
-            'En Revisión': 4,
-            'Aceptado': 5,
-            'Rechazado': 6
-        }
-        
-        id_estado = estado_map.get(nuevo_estado)
-        if not id_estado:
-            return jsonify({'success': False, 'message': 'Estado inválido'}), 400
+            return jsonify({'success': False, 'message': 'Nuevo estado no proporcionado'}), 400
         
         # Verificar que la postulación pertenece a una vacante del reclutador
         user_id = session['user_id']
-        query_verificacion = '''
-            SELECT p.id FROM postulaciones p
+        query_verificar = '''
+            SELECT p.id, p.id_vacante, v.titulo, p.id_usuario FROM postulaciones p
             INNER JOIN vacantes v ON p.id_vacante = v.id
             WHERE p.id = %s AND v.id_usuario = %s
         '''
+        postulacion_valida = conexion.get_datos_parametrizados(query_verificar, (id, user_id))
         
-        resultado = conexion.get_datos_parametrizados(query_verificacion, (id, user_id))
-        if not resultado:
+        if not postulacion_valida:
             return jsonify({'success': False, 'message': 'Postulación no encontrada o no autorizada'}), 404
         
-        # Actualizar el estado
-        query_update = 'UPDATE postulaciones SET id_estatus = %s WHERE id = %s'
-        resultado_update = conexion.update_datos_parametrizados(query_update, (id_estado, id))
+        # Obtener información de la postulación para el mensaje
+        id_vacante = postulacion_valida[0][1]
+        titulo_vacante = postulacion_valida[0][2]
+        id_usuario_postulacion = postulacion_valida[0][3]
         
-        if resultado_update.startswith('Registros actualizados'):
-            return jsonify({'success': True, 'message': 'Estado actualizado correctamente'})
+        # Actualizar el estado de la postulación
+        query_actualizar = "UPDATE postulaciones SET id_estatus = %s WHERE id = %s"
+        resultado = conexion.update_datos_parametrizados(query_actualizar, (nuevo_estado, id))
+        
+        if resultado == 'ok':
+            # Obtener el nombre del estado para el mensaje
+            query_estado = "SELECT estatus FROM estatus WHERE id = %s"
+            estado_info = conexion.get_datos_parametrizados(query_estado, (nuevo_estado,))
+            nombre_estado = estado_info[0][0] if estado_info else 'Actualizado'
+            
+            # Registrar la actualización en un log o tabla de historial (opcional)
+            try:
+                query_historial = """
+                    INSERT INTO historial_estados_postulaciones 
+                    (id_postulacion, id_usuario, id_estado_anterior, id_estado_nuevo, fecha_cambio, id_reclutador)
+                    VALUES (%s, %s, 
+                        (SELECT id_estatus FROM postulaciones WHERE id = %s), 
+                        %s, NOW(), %s)
+                """
+                # Obtener el estado anterior antes de actualizar
+                estado_anterior = conexion.get_datos_parametrizados(
+                    "SELECT id_estatus FROM postulaciones WHERE id = %s", (id,)
+                )
+                if estado_anterior:
+                    id_estado_anterior = estado_anterior[0][0]
+                    conexion.insert_datos_parametrizados(query_historial, 
+                        (id, id_usuario_postulacion, id_estado_anterior, nuevo_estado, user_id))
+            except Exception as e:
+                print(f"Error al registrar historial: {e}")
+                # No es crítico, continuar
+            
+            return jsonify({
+                'success': True, 
+                'message': f'Estado actualizado exitosamente a "{nombre_estado}"',
+                'nuevo_estado': nombre_estado,
+                'id_vacante': id_vacante,
+                'titulo_vacante': titulo_vacante,
+                'id_usuario': id_usuario_postulacion
+            })
         else:
-            return jsonify({'success': False, 'message': resultado_update}), 500
+            return jsonify({'success': False, 'message': 'Error al actualizar el estado'}), 500
             
     except Exception as e:
+        print(f"Error al cambiar estado de postulación: {str(e)}")
         return jsonify({'success': False, 'message': f'Error interno: {str(e)}'}), 500
 
 @app.route('/reclutador/candidato/<int:id>')
@@ -717,7 +851,7 @@ def reclutador_candidato(id):
             flash('Error de conexión a la base de datos', 'error')
             return redirect(url_for('reclutador_postulaciones'))
         
-        # Obtener información del candidato
+        # Obtener información completa del candidato
         query_candidato = '''
             SELECT 
                 i.nombre,
@@ -742,11 +876,11 @@ def reclutador_candidato(id):
         candidato = candidato_data[0]
         
         # Obtener nombres descriptivos de los IDs
-        empleo_query = "SELECT nombre FROM empleos WHERE id = %s"
-        experiencia_query = "SELECT nombre FROM experiencia WHERE id = %s"
-        estudios_query = "SELECT nombre FROM grado_estudios WHERE id = %s"
-        ciudad_query = "SELECT ciudad FROM ubicaciones WHERE id = %s"
-        cp_query = "SELECT cp FROM codigos_postales WHERE id = %s"
+        empleo_query = "SELECT empleo FROM empleos WHERE id = %s"
+        experiencia_query = "SELECT experiencia FROM experiencia WHERE id = %s"
+        estudios_query = "SELECT grado FROM grado_estudios WHERE id = %s"
+        ciudad_query = "SELECT ciudad FROM ciudad_referencia WHERE id = %s"
+        cp_query = "SELECT cp FROM cp WHERE id = %s"
         
         # Obtener empleo deseado
         empleo_result = conexion.get_datos_parametrizados(empleo_query, (candidato[3],)) if candidato[3] else None
@@ -768,6 +902,22 @@ def reclutador_candidato(id):
         cp_result = conexion.get_datos_parametrizados(cp_query, (candidato[7],)) if candidato[7] else None
         codigo_postal = cp_result[0][0] if cp_result else None
         
+        # Obtener información de postulaciones del candidato
+        query_postulaciones = '''
+            SELECT 
+                v.titulo,
+                p.fecha_postulacion,
+                es.estatus,
+                p.id as id_postulacion
+            FROM postulaciones p
+            INNER JOIN vacantes v ON p.id_vacante = v.id
+            INNER JOIN estatus es ON p.id_estatus = es.id
+            WHERE p.id_usuario = %s
+            ORDER BY p.fecha_postulacion DESC
+            LIMIT 5
+        '''
+        postulaciones = conexion.get_datos_parametrizados(query_postulaciones, (id,))
+        
         # Crear objeto candidato con datos procesados
         candidato_info = {
             'nombre': candidato[0],
@@ -777,7 +927,8 @@ def reclutador_candidato(id):
             'experiencia': experiencia,
             'grado_estudios': grado_estudios,
             'ciudad': ciudad,
-            'codigo_postal': codigo_postal
+            'codigo_postal': codigo_postal,
+            'postulaciones': postulaciones
         }
         
         return render_template('reclutador/candidato.html', candidato=candidato_info)

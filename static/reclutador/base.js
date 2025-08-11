@@ -251,4 +251,52 @@ style.textContent = `
         box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
     }
 `;
-document.head.appendChild(style); 
+document.head.appendChild(style);
+
+// Función para cambiar el estado de una postulación
+function cambiarEstadoPostulacion(postulacionId, nuevoEstado) {
+    // Mapear estados a IDs según la base de datos
+    const estadoMap = {
+        'En Revisión': 4,
+        'Aceptado': 5,
+        'Rechazado': 6
+    };
+    
+    const estadoId = estadoMap[nuevoEstado];
+    
+    if (!estadoId) {
+        showNotification('Estado no válido', 'error');
+        return;
+    }
+    
+    // Confirmar la acción
+    const mensaje = `¿Estás seguro de que quieres cambiar el estado a "${nuevoEstado}"?`;
+    confirmAction(mensaje, () => {
+        // Realizar la petición AJAX
+        fetch(`/reclutador/postulaciones/${postulacionId}/cambiar-estado`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                nuevo_estado: estadoId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(`Estado cambiado exitosamente a "${nuevoEstado}"`, 'success');
+                // Recargar la página para mostrar los cambios
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                showNotification(`Error: ${data.message}`, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Error al cambiar el estado', 'error');
+        });
+    });
+} 
