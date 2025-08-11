@@ -25,7 +25,7 @@
         <h3 class="card-title">Información de la Vacante</h3>
     </div>
     
-    <form class="card-body" method="POST" action="{{ url_for('reclutador_crear_vacante') }}">
+    <form id="formulario_vacante" class="card-body" method="POST" action="{{ url_for('reclutador_crear_vacante') }}">
         <div class="grid grid-cols-2">
             <!-- Basic Information -->
             <div>
@@ -80,12 +80,12 @@
                 
                 <div class="form-group">
                     <label class="form-label" for="salary_min">Salario Mínimo (MXN)</label>
-                    <input type="number" id="salary_min" name="salary_min" class="form-input" placeholder="25000">
+                    <input type="number" id="salary_min" name="salary_min" class="form-input" placeholder="25000" required>
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label" for="salary_max">Salario Máximo (MXN)</label>
-                    <input type="number" id="salary_max" name="salary_max" class="form-input" placeholder="45000">
+                    <input type="number" id="salary_max" name="salary_max" class="form-input" placeholder="45000" required>
                 </div>
                 
                 <div class="form-group">
@@ -102,12 +102,12 @@
                 
                 <div class="form-group">
                     <label class="form-label" for="deadline">Fecha Límite de Postulación</label>
-                    <input type="date" id="deadline" name="deadline" class="form-input">
+                    <input type="date" id="deadline" name="deadline" class="form-input" required>
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label" for="vacancies_count">Número de Vacantes</label>
-                    <input type="number" id="vacancies_count" name="vacancies_count" class="form-input" placeholder="1" value="1" min="1">
+                    <input type="number" id="vacancies_count" name="vacancies_count" class="form-input" placeholder="1" value="1" min="1" required>
                 </div>
             </div>
         </div>
@@ -132,7 +132,7 @@
                 
                 <div class="form-group">
                     <label class="form-label" for="benefits">Beneficios</label>
-                    <textarea id="benefits" name="benefits" class="form-textarea" placeholder="Describe los beneficios que ofrece la empresa..."></textarea>
+                    <textarea id="benefits" name="benefits" class="form-textarea" placeholder="Describe los beneficios que ofrece la empresa..." required></textarea>
                 </div>
             </div>
         </div>
@@ -146,13 +146,13 @@
             
             <div class="form-group">
                 <label class="form-label" for="skills">Habilidades Requeridas</label>
-                <input type="text" id="skills" name="skills" class="form-input" placeholder="Ej: JavaScript, React, Node.js, Git">
+                <input type="text" id="skills" name="skills" class="form-input" placeholder="Ej: JavaScript, React, Node.js, Git" required>
                 <small style="color: #6B7280; font-size: 0.75rem;">Separa las habilidades con comas</small>
             </div>
             
             <div class="form-group">
-                <label class="form-label" for="nice_to_have">Habilidades Deseadas (Opcional)</label>
-                <input type="text" id="nice_to_have" name="nice_to_have" class="form-input" placeholder="Ej: TypeScript, AWS, Docker">
+                <label class="form-label" for="nice_to_have">Habilidades Deseadas</label>
+                <input type="text" id="nice_to_have" name="nice_to_have" class="form-input" placeholder="Ej: TypeScript, AWS, Docker" required>
                 <small style="color: #6B7280; font-size: 0.75rem;">Habilidades que serían un plus</small>
             </div>
         </div>
@@ -171,12 +171,31 @@
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label" for="contact_phone">Teléfono (Opcional)</label>
-                    <input type="tel" id="contact_phone" name="contact_phone" class="form-input" placeholder="+52 55 1234 5678">
+                    <label class="form-label" for="contact_phone">Teléfono </label>
+                    <input type="number" id="contact_phone" inputmode="numeric" pattern="\d{8,}"  name="contact_phone" title="Solo números, obligatiorio 8 dígitos" class="form-input" placeholder="Obligatorio 10 dígitos" required>
                 </div>
             </div>
         </div>
-        
+        <script>
+            const campoTelefono = document.getElementById('contact_phone');
+
+            // Bloquear letras mientras se escribe
+            campoTelefono.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, ''); // Quita todo lo que no sea dígito
+            });
+
+            document.getElementById('"formulario_vacante"').addEventListener('submit', function(e) {
+            const telefono = campoTelefono.value;
+            
+            // Validar que tenga mínimo 8 dígitos
+            if (telefono.length < 8) {
+                e.preventDefault(); // Evita el envío
+                alert('El teléfono debe tener 10 dígitos y solo números.');
+            }
+            });
+        </script>
+
+
         <!-- Form Actions -->
         <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #E5E7EB; display: flex; gap: 1rem; justify-content: flex-end;">
             <button type="button" class="btn btn-secondary" onclick="saveDraft()">
